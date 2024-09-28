@@ -94,6 +94,8 @@ html {
   padding: 10px;
   justify-content: center;
   align-items: center;
+
+  min-width: 300px;
 }
 
 #instructions {
@@ -147,7 +149,7 @@ html {
 }
 
 .input-container {
-  width: 300px;
+  width: 100%;
   padding: 15px !important;
   border-radius: 10px !important;
   display: flex; /* Align items in a row */
