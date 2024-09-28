@@ -6,6 +6,9 @@ import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import "./Map.css";
 import { Car, Footprints, Bike } from "lucide-react";
 
+import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+
 const Direction = () => {
   const mapContainerRef = useRef(null);
   const [mapStyle, setMapStyle] = useState(
@@ -295,27 +298,33 @@ const Direction = () => {
   return (
     <div className="map-container">
       <div className="map-mode-buttons">
-        <button
-          onClick={() =>
-            handleStyleChange("mapbox://styles/mapbox/streets-v12")
-          }
-        >
-          Day
-        </button>
-        <button
-          onClick={() =>
-            handleStyleChange("mapbox://styles/mapbox/navigation-night-v1")
-          }
-        >
-          Night
-        </button>
-        <button
-          onClick={() =>
-            handleStyleChange("mapbox://styles/mapbox/satellite-streets-v12")
-          }
-        >
-          Satellite
-        </button>
+        <Tabs variant="soft-rounded" colorScheme="green">
+          <TabList>
+            <Tab
+              onClick={() =>
+                handleStyleChange("mapbox://styles/mapbox/streets-v12")
+              }
+            >
+              <SunIcon />
+            </Tab>
+            <Tab
+              onClick={() =>
+                handleStyleChange("mapbox://styles/mapbox/navigation-night-v1")
+              }
+            >
+              <MoonIcon />
+            </Tab>
+            <Tab
+              onClick={() =>
+                handleStyleChange(
+                  "mapbox://styles/mapbox/satellite-streets-v12"
+                )
+              }
+            >
+              <Bike />
+            </Tab>
+          </TabList>
+        </Tabs>
       </div>
       <div className="controls">
         <input
@@ -332,38 +341,37 @@ const Direction = () => {
           value={destination}
           onChange={(e) => handleInputChange(e, setDestination)}
         />
-
-        <div className="mode-buttons">
-          <button
-            className={`mode-button ${mode === "driving" ? "selected" : ""}`}
-            onClick={() => handleModeChange("driving")}
-          >
-            <Car />
-          </button>
-          <button
-            className={`mode-button ${mode === "walking" ? "selected" : ""}`}
-            onClick={() => handleModeChange("walking")}
-          >
-            <Footprints />
-          </button>
-          <button
-            className={`mode-button ${mode === "cycling" ? "selected" : ""}`}
-            onClick={() => handleModeChange("cycling")}
-          >
-            <Bike />
-          </button>
-          <button onClick={calculateRoute}>Get Directions</button>
-        </div>
+        <Tabs variant="soft-rounded" colorScheme="green">
+          <TabList>
+            <Tab onClick={() => handleModeChange("driving")}>
+              <Car />
+            </Tab>
+            <Tab onClick={() => handleModeChange("walking")}>
+              <Footprints />
+            </Tab>
+            <Tab onClick={() => handleModeChange("cycling")}>
+              <Bike />
+            </Tab>
+            <button onClick={calculateRoute}>Get Directions</button>
+          </TabList>
+        </Tabs>
       </div>
       <div ref={mapContainerRef} className="map" style={{ height: "100vh" }} />
       {directions && (
         <div id="instructions">
-          <p>
-            <strong>Trip duration: {directions.duration} min</strong>
-          </p>
-          <p>
-            <strong>Distance: {directions.distance} km</strong>
-          </p>
+          <div className="direction-header">
+            <span>
+              {mode === "driving" && <Car />}
+              {mode === "walking" && <Footprints />}
+              {mode === "cycling" && <Bike />}
+            </span>
+            <p>
+              <strong>
+                Trip duration: {directions.duration} min ({directions.distance}{" "}
+                km)
+              </strong>
+            </p>
+          </div>
           <ol>
             {directions.instructions.map((instruction, index) => (
               <li key={index}>{instruction}</li>

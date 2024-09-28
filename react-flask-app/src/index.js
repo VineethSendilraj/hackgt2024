@@ -1,15 +1,19 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
 // import Direction  from './components/Map';
-import Direction from './components/NewMap';
+import Direction from "./components/NewMap";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// 1. import `ChakraProvider` component
+import { ChakraProvider } from "@chakra-ui/react";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    {/* <Direction /> */}
-    <Direction />
+    <ChakraProvider>
+      <Direction />
+    </ChakraProvider>
   </React.StrictMode>
 );
 
