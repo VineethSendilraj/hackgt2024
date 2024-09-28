@@ -21,7 +21,7 @@ const Direction = () => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [33.7501, 84.3885], // Default center
+      center: [84.3885, 33.7501], // Default center
       zoom: 12,
     });
 
