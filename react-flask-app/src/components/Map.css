@@ -16,7 +16,7 @@ html {
   width: 100%;
 }
 
-.controls {
+/* .controls {
   position: absolute;
   top: 20px;
   left: 50%;
@@ -28,11 +28,9 @@ html {
   gap: 10px;
   z-index: 10;
   padding: 10px;
-  /* center horizontally */
   justify-content: center;
-  /* center vertically */
   align-items: center;
-}
+} */
 
 .mode-buttons {
   display: flex;
@@ -67,7 +65,7 @@ html {
   border: 2px solid #007bff;
 }
 
-#instructions {
+/* #instructions {
   position: absolute;
   top: 20px;
   left: 20px;
@@ -77,6 +75,37 @@ html {
   overflow-y: auto;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
+  z-index: 20;
+  font-family: sans-serif;
+  display: flex; 
+  flex-direction: column; 
+} */
+
+.controls {
+  position: absolute;
+  top: 20px; /* Adjust as needed */
+  left: 20px; /* Move to the far left */
+  display: flex;
+  flex-direction: column; /* Stack input fields vertically */
+  background-color: #ffffffbb;
+  border-radius: 25px;
+  gap: 10px;
+  z-index: 10;
+  padding: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+#instructions {
+  position: absolute;
+  top: 240px; /* Adjust to position right under the controls with some spacing */
+  left: 20px; /* Align with the input container */
+  width: 320px;
+  max-height: 70%;
+  background-color: #ffffffcc;
+  overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
   z-index: 20;
   font-family: sans-serif;
   display: flex; /* Keep flex for alignment */
@@ -109,7 +138,7 @@ html {
 .map-mode-buttons {
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: 50px;
   z-index: 10;
   background-color: #ffffffbb;
   padding: 10px;
