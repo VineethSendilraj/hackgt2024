@@ -572,18 +572,15 @@ const Direction = () => {
   };
 
 const UpdatedMap = (filtered) => {
-       useEffect(() => {
-
-        mapRef.current.removeLayer
         mapRef.current.addLayer({
           id: "clusters",
           type: "circle",
           source: "crimes",
-          filter: ["has", "point_count"],
+          filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
           paint: {
             "circle-color": [
               "step",
-              ["get", "point_count"],
+              ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered],
               "#51bbd6",
               100,
               "#f1f075",
@@ -592,7 +589,7 @@ const UpdatedMap = (filtered) => {
             ],
             "circle-radius": [
               "step",
-              ["get", "point_count"],
+              ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
               25,
               100,
               35,
@@ -610,7 +607,7 @@ const UpdatedMap = (filtered) => {
           id: "cluster-count",
           type: "symbol",
           source: "crimes",
-          filter: ["has", "point_count"],
+          filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
           layout: {
             "text-field": ["get", "point_count_abbreviated"],
             "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
@@ -622,7 +619,7 @@ const UpdatedMap = (filtered) => {
           id: "unclustered-point",
           type: "circle",
           source: "crimes",
-          filter: ["!", ["has", "point_count"]],
+          filter: ["!", ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered]],
           paint: {
             "circle-color": "#11b4da",
             "circle-radius": 6,
@@ -632,7 +629,6 @@ const UpdatedMap = (filtered) => {
             "circle-stroke-opacity": 0.6,
           },
         });
-       }, []);
     };
   
   
