@@ -9,6 +9,15 @@ import { Tabs, TabList, Tab } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
 import { Button, ButtonGroup } from '@chakra-ui/react'
 
+import FilterForm from './FilterForm';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
+} from '@chakra-ui/react';
+
 import {
   FaLocationDot,
   FaLocationCrosshairs,
@@ -489,6 +498,15 @@ const Direction = () => {
     }
   };
 
+  const newFilter = () => {
+    setFilters({ ...filters, [countID]: { id: countID } });
+    setCountID(countID + 1);
+  };
+
+  const triggerUpdate = () => {
+    setUpdate(update + 1);
+  };
+
   return (
     <div className="map-container">
       {/* Map Style Selection */}
@@ -666,6 +684,37 @@ const Direction = () => {
           </ol>
         </div>
       )}
+  
+        {/* Filter Form */}
+        <Accordion>
+            {Object.keys(filters).map((f, i) => (
+              <AccordionItem key={f}>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left" color={`${colors[i]}`}>
+                    Filter {parseInt(i) + 1} {console.log(colors[i])}
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+
+                <AccordionPanel>
+                  <FilterForm
+                    key={f}
+                    id={f}
+                    filters={filters}
+                    setFilters={setFilters}
+                  />
+                </AccordionPanel>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        <Button onClick={newFilter} colorScheme="green">
+          Add Filter
+        </Button>
+        <Button onClick={triggerUpdate} colorScheme="blue">
+          Update
+        </Button>
+
+        
     </div>
   );
 };
