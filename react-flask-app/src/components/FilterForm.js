@@ -37,20 +37,6 @@ const FilterForm = ({ filters, setFilters, id }) => {
     <>
       <CheckboxGroup
         onChange={e => {
-          updateFilter('year', e);
-        }}
-        defaultValue={filters[id].year}
-      >
-        <FormLabel>Year</FormLabel>
-        <SimpleGrid spacing={5} columns={2}>
-          <Checkbox value="2020">2020</Checkbox>
-          <Checkbox value="2021">2021</Checkbox>
-          <Checkbox value="2022">2022</Checkbox>
-          <Checkbox value="2023">2023</Checkbox>
-        </SimpleGrid>
-      </CheckboxGroup>
-      <CheckboxGroup
-        onChange={e => {
           updateFilter('crime', e);
         }}
         defaultValue={filters[id].crime}

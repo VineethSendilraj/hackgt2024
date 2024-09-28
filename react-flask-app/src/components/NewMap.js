@@ -13,6 +13,7 @@ import {ButtonGroup } from '@chakra-ui/react'
 // Implementing Filter Form
 import {
   Button,
+  Box,
   FormControl,
   FormLabel,
   Checkbox,
@@ -59,17 +60,22 @@ const Direction = () => {
 
   // Other states
 
-
   const [mode, setMode] = useState("walking");
-  const [filters, setFilters] = useState(null);
+
+  // filter shit
+  const [filters, setFilters] = useState({
+    0: { crime: [] },  // Initialize with only crime filters
+  });
+  const [countID, setCountID] = useState(1);  // Filter count ID
+  const [update, setUpdate] = useState(0);  // To trigger updates
+
+    
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
   const [showOriginSearch, setShowOriginSearch] = useState(false); // Visibility for origin search icon
   const [showDestinationSearch, setShowDestinationSearch] = useState(false); // Visibility for destination search icon
 
   // add the state
-  const [year, setYear] = useState(filters[id].year)
-  const [crime, setCrime] = useState(filter[id].crime)
 
   const mapToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
 
@@ -330,9 +336,6 @@ const Direction = () => {
     setMode(selectedMode);
   };
 
-  const handlefilterChange = (selectedFilter) => {
-    setFilters(selectedFilter)
-  }
 
 
   // Function to calculate route based on input fields
@@ -520,16 +523,30 @@ const Direction = () => {
     }
   };
 
+  const updateFilter = (id, key, value) => {
+    const updatedFilters = { ...filters };
+    updatedFilters[id][key] = value;
+    setFilters(updatedFilters);
+  };
 
+  const deleteFilter = (id) => {
+    const updatedFilters = { ...filters };
+    delete updatedFilters[id];
+    setFilters(updatedFilters);
+  };
 
   const newFilter = () => {
-    setFilters({ ...filters, [countID]: { id: countID } });
+    setFilters({ ...filters, [countID]: { crime: [] } });
     setCountID(countID + 1);
   };
 
   const triggerUpdate = () => {
     setUpdate(update + 1);
+    console.log(filters);  // Here you would handle updating the map based on filters
   };
+
+
+
 
   return (
     <div className="map-container">
@@ -709,34 +726,40 @@ const Direction = () => {
         </div>
       )}
   
-        {/* Filter Form */}
-        <Accordion>
-            {Object.keys(filters).map((f, i) => (
-              <AccordionItem key={f}>
-                <AccordionButton>
-                  <Box flex="1" textAlign="left" color={`${colors[i]}`}>
-                    Filter {parseInt(i) + 1} {console.log(colors[i])}
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-
-                <AccordionPanel>
-                  <FilterForm
-                    key={f}
-                    id={f}
-                    filters={filters}
-                    setFilters={setFilters}
-                  />
-                </AccordionPanel>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        <Button onClick={newFilter} colorScheme="green">
-          Add Filter
-        </Button>
-        <Button onClick={triggerUpdate} colorScheme="blue">
-          Update
-        </Button>
+      <Accordion allowToggle>
+        {Object.keys(filters).map((filterId, index) => (
+          <AccordionItem key={filterId}>
+            <AccordionButton>
+              <Box flex="1" textAlign="left">
+                Filter {index + 1}
+              </Box>
+              <AccordionIcon />
+            </AccordionButton>
+            <AccordionPanel>
+              <CheckboxGroup
+                onChange={(e) => updateFilter(filterId, 'crime', e)}
+                defaultValue={filters[filterId].crime}
+              >
+                <FormLabel>Crime Involved</FormLabel>
+                <SimpleGrid spacing={5} columns={2}>
+                  <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
+                  <Checkbox value="Auto Theft">Auto Theft</Checkbox>
+                  <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
+                  <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
+                  <Checkbox value="Burglary">Burglary</Checkbox>
+                  <Checkbox value="Homicide">Homicide</Checkbox>
+                  <Checkbox value="Robbery">Robbery</Checkbox>
+                </SimpleGrid>
+              </CheckboxGroup>
+              {Object.keys(filters).length > 1 && (
+                <Button colorScheme="red" onClick={() => deleteFilter(filterId)}>
+                  Remove Filter
+                </Button>
+              )}
+            </AccordionPanel>
+          </AccordionItem>
+        ))}
+      </Accordion>
 
         
     </div>
