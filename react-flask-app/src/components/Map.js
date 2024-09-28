@@ -12,6 +12,7 @@ const Direction = () => {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [routeGeometry, setRouteGeometry] = useState(null);
+  const [mode, setMode] = useState('walking'); // Default mode is walking
   const mapRef = useRef();
   const geocodingClient = MapboxGeocoding({
     accessToken: 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ',
@@ -227,6 +228,10 @@ const Direction = () => {
         console.error("Error calculating route:", error);
       }
     }
+  };
+
+  const handleModeChange = (selectedMode) => {
+    setMode(selectedMode);
   };
 
   return (
