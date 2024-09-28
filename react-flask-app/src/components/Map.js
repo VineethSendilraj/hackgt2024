@@ -27,9 +27,9 @@ const Direction = () => {
 
     mapRef.current.on("load", () => {
       // Clustering logic
-      mapRef.current.addSource('earthquakes', {
+      mapRef.current.addSource('crimes', {
         type: 'geojson',
-        data: 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson',
+        data: 'https://github.com/VineethSendilraj/hackgt2024/blob/main/react-flask-app/src/components/data_1.geojson',
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50
@@ -38,7 +38,7 @@ const Direction = () => {
       mapRef.current.addLayer({
         id: 'clusters',
         type: 'circle',
-        source: 'earthquakes',
+        source: 'crimes',
         filter: ['has', 'point_count'],
         paint: {
           'circle-color': [
@@ -65,7 +65,7 @@ const Direction = () => {
       mapRef.current.addLayer({
         id: 'cluster-count',
         type: 'symbol',
-        source: 'earthquakes',
+        source: 'crimes',
         filter: ['has', 'point_count'],
         layout: {
           'text-field': ['get', 'point_count_abbreviated'],
@@ -77,7 +77,7 @@ const Direction = () => {
       mapRef.current.addLayer({
         id: 'unclustered-point',
         type: 'circle',
-        source: 'earthquakes',
+        source: 'crimes',
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': '#11b4da',
