@@ -72,12 +72,20 @@ const Direction = () => {
   const [update, setUpdate] = useState(0);  // To trigger updates
 
     
+  // State to store visible clusters
+  const [visibleClusters, setVisibleClusters] = useState([]);
+
+
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
   const [showOriginSearch, setShowOriginSearch] = useState(false); // Visibility for origin search icon
   const [showDestinationSearch, setShowDestinationSearch] = useState(false); // Visibility for destination search icon
 
-  // add the state
+
+  // Add this useEffect to log visible clusters (optional)
+  useEffect(() => {
+    console.log("Visible Clusters:", visibleClusters);
+  }, [visibleClusters]);
 
   const mapToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
 
@@ -98,6 +106,25 @@ const Direction = () => {
 
     // Add navigation controls to the map (optional)
     mapRef.current.addControl(new mapboxgl.NavigationControl());
+
+    // Function to fetch visible clusters
+    const fetchVisibleClusters = () => {
+      if (!mapRef.current) return;
+
+      // Query all rendered features in the 'clusters' layer
+      const clusters = mapRef.current.queryRenderedFeatures({
+          layers: ["clusters"], // Ensure this matches your clusters layer ID
+      });
+  
+        // Optional: Process clusters if needed (e.g., extract specific properties)
+      const processedClusters = clusters.map((cluster) => ({
+        id: cluster.id,
+        coordinates: cluster.geometry.coordinates,
+        pointCount: cluster.properties.point_count,
+        // Add other properties as needed
+      }));
+        setVisibleClusters(processedClusters);
+    };
 
     mapRef.current.on("load", () => {
       // Clustering logic
@@ -214,7 +241,7 @@ const Direction = () => {
       mapRef.current.on("mouseleave", "clusters", () => {
         mapRef.current.getCanvas().style.cursor = "";
       });
-
+        
       // Add double-click event for setting destination
       mapRef.current.on("dblclick", (event) => {
         (async () => {
@@ -231,15 +258,28 @@ const Direction = () => {
           }
         })();
       });
+
+      // Fetch visible clusters initially
+      fetchVisibleClusters();
+
+      // Set up event listeners to update visible clusters on view changes
+      mapRef.current.on("moveend", fetchVisibleClusters);
+      mapRef.current.on("zoomend", fetchVisibleClusters);
+
     });
 
     // Cleanup on unmount
     return () => {
-      if (mapRef.current) mapRef.current.remove();
+      if (mapRef.current) {
+        mapRef.current.off("moveend", fetchVisibleClusters);
+        mapRef.current.off("zoomend", fetchVisibleClusters);
+        mapRef.current.remove();
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapStyle, originCoords, mode]);
 
+        
   useEffect(() => {
     if (originCoords && destinationCoords) {
       getRoute(originCoords, destinationCoords, mode);
@@ -582,21 +622,22 @@ const Direction = () => {
       {/* Controls for Origin and Destination */}
       <div className="controls">
 
-        <div className="logo-container" style={{ display: "flex", alignItems: "center" }}>
-          <Text
-            fontFamily="Avenir, sans-serif"
-            fontSize="30px" // Adjust size as needed
-            marginRight="8px" // Adjust spacing as needed
-          >
-            safely
-          </Text>
-          <Image
-            borderRadius="full"
-            boxSize="50px" // Adjust the size as needed
-            src="https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/logo-removebg-preview.png"
-            alt="Logo"
-          />
-        </div>
+      <div className="logo-container" style={{ display: "flex", alignItems: "center" }}>
+        <Text
+          fontFamily="Avenir, sans-serif" // or "Avenir Next, sans-serif" if using Google Fonts
+          fontSize="24px" // Adjust size as needed
+          margin = '0'
+        >
+          safely
+        </Text>
+        <Image
+          borderRadius="full"
+          boxSize="50px" // Adjust the size as needed
+          src="https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/logo-removebg-preview.png"
+          alt="Logo"
+          paddingLeft = '5px'
+        />
+      </div>
         {/* Origin Input */}
         <div
           className="input-container"
@@ -776,8 +817,25 @@ const Direction = () => {
           </ol>
         </div>
       )}
-  
-        
+
+      {/* Display visible clusters */}
+      <div
+        className="visible-clusters-info"
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "white",
+          padding: "10px",
+          borderRadius: "5px",
+          zIndex: 1,
+        }}
+      >
+        <p>
+          <strong>Visible Clusters:</strong> {visibleClusters.length}
+        </p>
+        {/* You can add more details or visualization as needed */}
+      </div>
     </div>
   );
 };
