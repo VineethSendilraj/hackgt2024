@@ -103,8 +103,8 @@ const Direction = () => {
         type: "geojson",
         data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/2019_2020.geojson",
         cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 75,
+        clusterMaxZoom: 20,
+        clusterRadius: 50,
       });
 
       mapRef.current.addLayer({
