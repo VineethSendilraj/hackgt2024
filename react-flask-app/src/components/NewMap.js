@@ -99,6 +99,8 @@ const Direction = () => {
 
     mapRef.current.on("load", () => {
       // Clustering logic
+
+      
       mapRef.current.addSource("crimes", {
         type: "geojson",
         data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson",
@@ -242,6 +244,8 @@ const Direction = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, originCoords, destinationCoords]);
+
+
 
   // Function to handle map style changes
   const handleStyleChange = (newStyle) => {
@@ -523,10 +527,80 @@ const Direction = () => {
     }
   };
 
+const UpdatedMap = (filtered) => {
+       useEffect(() => {
+
+        mapRef.current.removeLayer
+        mapRef.current.addLayer({
+          id: "clusters",
+          type: "circle",
+          source: "crimes",
+          filter: ["has", "point_count"],
+          paint: {
+            "circle-color": [
+              "step",
+              ["get", "point_count"],
+              "#51bbd6",
+              100,
+              "#f1f075",
+              750,
+              "#f28cb1",
+            ],
+            "circle-radius": [
+              "step",
+              ["get", "point_count"],
+              25,
+              100,
+              35,
+              750,
+              45,
+            ],
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-opacity": 0.6,
+          },
+        });
+  
+        mapRef.current.addLayer({
+          id: "cluster-count",
+          type: "symbol",
+          source: "crimes",
+          filter: ["has", "point_count"],
+          layout: {
+            "text-field": ["get", "point_count_abbreviated"],
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 14,
+          },
+        });
+  
+        mapRef.current.addLayer({
+          id: "unclustered-point",
+          type: "circle",
+          source: "crimes",
+          filter: ["!", ["has", "point_count"]],
+          paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 6,
+            "circle-opacity": 0.9,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-opacity": 0.6,
+          },
+        });
+       }, []);
+    };
+  
+  
+
+
   const updateFilter = (id, key, value) => {
     const updatedFilters = { ...filters };
     updatedFilters[id][key] = value;
+    // we are going to call a function which changes the clusters displayedc
+    UpdatedMap(updatedFilters[id][key])
     setFilters(updatedFilters);
+
   };
 
   const deleteFilter = (id) => {
@@ -700,13 +774,14 @@ const Direction = () => {
             </AccordionButton>
             <AccordionPanel>
               <CheckboxGroup
-                onChange={(e) => updateFilter(filterId, 'crime', e)}
+                onChange={(e) => setTimeout(() => updateFilter(filterId, 'crime', e), 1000)}
                 defaultValue={filters[filterId].crime}
               >
                 <SimpleGrid spacing={5} columns={2}>
                   <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
                   <Checkbox value="Auto Theft">Auto Theft</Checkbox>
                   <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
+   
                   <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
                   <Checkbox value="Burglary">Burglary</Checkbox>
                   <Checkbox value="Homicide">Homicide</Checkbox>
