@@ -535,10 +535,6 @@ const Direction = () => {
     setFilters(updatedFilters);
   };
 
-  const newFilter = () => {
-    setFilters({ ...filters, [countID]: { crime: [] } });
-    setCountID(countID + 1);
-  };
 
   const triggerUpdate = () => {
     setUpdate(update + 1);
@@ -690,6 +686,43 @@ const Direction = () => {
             </button> */}
           </TabList>
         </Tabs>
+
+
+
+        <Accordion allowToggle>
+        {Object.keys(filters).map((filterId) => (
+          <AccordionItem key={filterId}>
+            <AccordionButton>
+              <Box flex="1" textAlign="left">
+              <FormLabel>Crime Involved</FormLabel>
+              </Box>
+              <AccordionIcon />
+            </AccordionButton>
+            <AccordionPanel>
+              <CheckboxGroup
+                onChange={(e) => updateFilter(filterId, 'crime', e)}
+                defaultValue={filters[filterId].crime}
+              >
+                <SimpleGrid spacing={5} columns={2}>
+                  <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
+                  <Checkbox value="Auto Theft">Auto Theft</Checkbox>
+                  <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
+                  <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
+                  <Checkbox value="Burglary">Burglary</Checkbox>
+                  <Checkbox value="Homicide">Homicide</Checkbox>
+                  <Checkbox value="Robbery">Robbery</Checkbox>
+                </SimpleGrid>
+              </CheckboxGroup>
+              {Object.keys(filters).length > 1 && (
+                <Button colorScheme="red" onClick={() => deleteFilter(filterId)}>
+                  Remove Filter
+                </Button>
+              )}
+            </AccordionPanel>
+          </AccordionItem>
+        ))}
+      </Accordion>
+
       </div>
 
 
@@ -726,41 +759,6 @@ const Direction = () => {
         </div>
       )}
   
-      <Accordion allowToggle>
-        {Object.keys(filters).map((filterId, index) => (
-          <AccordionItem key={filterId}>
-            <AccordionButton>
-              <Box flex="1" textAlign="left">
-                Filter {index + 1}
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel>
-              <CheckboxGroup
-                onChange={(e) => updateFilter(filterId, 'crime', e)}
-                defaultValue={filters[filterId].crime}
-              >
-                <FormLabel>Crime Involved</FormLabel>
-                <SimpleGrid spacing={5} columns={2}>
-                  <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
-                  <Checkbox value="Auto Theft">Auto Theft</Checkbox>
-                  <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
-                  <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
-                  <Checkbox value="Burglary">Burglary</Checkbox>
-                  <Checkbox value="Homicide">Homicide</Checkbox>
-                  <Checkbox value="Robbery">Robbery</Checkbox>
-                </SimpleGrid>
-              </CheckboxGroup>
-              {Object.keys(filters).length > 1 && (
-                <Button colorScheme="red" onClick={() => deleteFilter(filterId)}>
-                  Remove Filter
-                </Button>
-              )}
-            </AccordionPanel>
-          </AccordionItem>
-        ))}
-      </Accordion>
-
         
     </div>
   );
