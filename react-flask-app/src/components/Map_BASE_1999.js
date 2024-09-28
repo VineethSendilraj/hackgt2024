@@ -5,6 +5,7 @@ import axios from "axios";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import './Map.scss'; // Import CSS file for custom styling
 import {Car, Footprints, Bike } from 'lucide-react'; // Import from react-icons
+import token from ".env"
 
 const Direction = () => {
   const mapContainerRef = useRef(null);
@@ -12,13 +13,14 @@ const Direction = () => {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [routeGeometry, setRouteGeometry] = useState(null);
+  const [mode, setMode] = useState('walking'); // Default mode is walking
   const mapRef = useRef();
   const geocodingClient = MapboxGeocoding({
-    accessToken: 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ',
+    accessToken: token,
   });
 
   useEffect(() => {
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
+    mapboxgl.accessToken = token;
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
@@ -32,10 +34,10 @@ const Direction = () => {
       // Clustering logic
       mapRef.current.addSource('crimes', {
         type: 'geojson',
-        data: 'https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/components/data_1.geojson',
+        data: 'https://github.com/VineethSendilraj/hackgt2024/blob/main/react-flask-app/src/components/data_1.geojson',
         cluster: true,
         clusterMaxZoom: 14,
-        clusterRadius: 75
+        clusterRadius: 50
       });
 
       mapRef.current.addLayer({
@@ -56,16 +58,12 @@ const Direction = () => {
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            25, // Increased base size for a modern look
+            20,
             100,
-            35,
+            30,
             750,
-            45
-          ],
-          'circle-opacity': 0.8, // Slight transparency for a softer look
-          'circle-stroke-width': 2, // Adding a stroke width
-          'circle-stroke-color': '#fff', // Stroke color
-          'circle-stroke-opacity': 0.6 // Slight transparency on the stroke
+            40
+          ]
         }
       });
 
@@ -77,8 +75,7 @@ const Direction = () => {
         layout: {
           'text-field': ['get', 'point_count_abbreviated'],
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 14, // Increased text size for better visibility
-          'text-color': '#fff' // Modern white text for contrast
+          'text-size': 12
         }
       });
 
@@ -89,29 +86,11 @@ const Direction = () => {
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': '#11b4da',
-          'circle-radius': 6, // Slightly larger radius for unclustered points
-          'circle-opacity': 0.9, // Higher opacity for visibility
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
-          'circle-stroke-opacity': 0.6
+          'circle-radius': 4,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#fff'
         }
       });
-
-      mapRef.current.addLayer({
-        id: 'unclustered-point',
-        type: 'circle',
-        source: 'crimes',
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': '#11b4da',
-          'circle-radius': 6,
-          'circle-opacity': 0.9,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
-          'circle-stroke-opacity': 0.6
-        }
-      });
-  
 
       // Inspect a cluster on click
       mapRef.current.on('click', 'clusters', (e) => {
@@ -120,7 +99,7 @@ const Direction = () => {
         });
         const clusterId = features[0].properties.cluster_id;
         mapRef.current
-          .getSource('crimes')
+          .getSource('earthquakes')
           .getClusterExpansionZoom(clusterId, (err, zoom) => {
             if (err) return;
 
@@ -134,26 +113,19 @@ const Direction = () => {
       // Popup for unclustered points
       mapRef.current.on('click', 'unclustered-point', (e) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
-        const properties = e.features[0].properties;
-      
-        // Create HTML content for the popup
-        let popupContent = '';
-        Object.entries(properties).forEach(([key, value]) => {
-          popupContent += `${key}: ${value}<br>`;
-        });
-      
-        // Adjust coordinates for the popup
+        const mag = e.features[0].properties.mag;
+        const tsunami = e.features[0].properties.tsunami === 1 ? 'yes' : 'no';
+
         while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
           coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
         }
-      
+
         new mapboxgl.Popup()
           .setLngLat(coordinates)
-          .setHTML(popupContent) // Set the HTML content with all properties
+          .setHTML(`magnitude: ${mag}<br>Was there a tsunami?: ${tsunami}`)
           .addTo(mapRef.current);
       });
-      
-      // Change cursor style on mouse enter/leave
+
       mapRef.current.on('mouseenter', 'clusters', () => {
         mapRef.current.getCanvas().style.cursor = 'pointer';
       });
@@ -218,7 +190,7 @@ const Direction = () => {
         const destinationCoordinates = destinationResponse.body.features[0].center;
 
         const directionsResponse = await axios.get(
-          `https://api.mapbox.com/directions/v5/mapbox/driving/${originCoordinates.join(',')};${destinationCoordinates.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`
+          `https://api.mapbox.com/directions/v5/mapbox/${mode}/${originCoordinates.join(',')};${destinationCoordinates.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`
         );
 
         const route = directionsResponse.data.routes[0].geometry;
@@ -227,6 +199,10 @@ const Direction = () => {
         console.error("Error calculating route:", error);
       }
     }
+  };
+
+  const handleModeChange = (selectedMode) => {
+    setMode(selectedMode);
   };
 
   return (
@@ -252,23 +228,23 @@ const Direction = () => {
             className={`mode-button ${mode === 'driving' ? 'selected' : ''}`}
             onClick={() => handleModeChange('driving')}
           >
-            <Car />
+            <Car /> Car
           </button>
           <button
             className={`mode-button ${mode === 'walking' ? 'selected' : ''}`}
             onClick={() => handleModeChange('walking')}
           >
-            <Footprints />
+            <Footprints /> Walking
           </button>
           <button
             className={`mode-button ${mode === 'cycling' ? 'selected' : ''}`}
             onClick={() => handleModeChange('cycling')}
           >
-            <Bike />
+            <Bike /> Biking
           </button>
-          <button onClick={calculateRoute}>Get Directions</button>
         </div>
 
+        <button onClick={calculateRoute}>Get Directions</button>
       </div>
       <div
         ref={mapContainerRef}
