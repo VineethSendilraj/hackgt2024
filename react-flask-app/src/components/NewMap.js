@@ -7,6 +7,7 @@ import { Car, Footprints, Bike } from "lucide-react";
 
 import { Tabs, TabList, Tab } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
+import { Button, ButtonGroup } from '@chakra-ui/react'
 
 import {
   FaLocationDot,
@@ -44,7 +45,7 @@ const Direction = () => {
   const [showOriginSearch, setShowOriginSearch] = useState(false); // Visibility for origin search icon
   const [showDestinationSearch, setShowDestinationSearch] = useState(false); // Visibility for destination search icon
 
-  const mapToken = process.env.REACT_APP_MAP_TOKEN;
+  const mapToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
 
   // Initialize Mapbox Geocoding client
   const geocodingClient = MapboxGeocoding({
@@ -468,6 +469,26 @@ const Direction = () => {
     return () => clearTimeout(debounceTimer);
   }, [destinationInput, geocodingClient]);
 
+
+  // handle reset button
+  const handleReset = () => {
+    setOriginInput("");
+    setDestinationInput("");
+    setOriginCoords(null);
+    setDestinationCoords(null);
+    setOriginSuggestions([]);
+    setDestinationSuggestions([]);
+    setDirections(null);
+  
+    // Remove the route layer from the map if it exists
+    if (mapRef.current.getSource("route")) {
+      mapRef.current.getSource("route").setData({
+        type: "FeatureCollection",
+        features: [],
+      });
+    }
+  };
+
   return (
     <div className="map-container">
       {/* Map Style Selection */}
@@ -612,6 +633,7 @@ const Direction = () => {
         </Tabs>
       </div>
 
+
       {/* Map Display */}
       <div ref={mapContainerRef} className="map" style={{ height: "100vh" }} />
 
@@ -630,7 +652,13 @@ const Direction = () => {
                 km)
               </strong>
             </p>
+
+            {/* Chakra UI Button */}
+            <Button onClick={handleReset} colorScheme="red">
+              Reset 
+            </Button>
           </div>
+
           <ol>
             {directions.instructions.map((instruction, index) => (
               <li key={index}>{instruction}</li>
