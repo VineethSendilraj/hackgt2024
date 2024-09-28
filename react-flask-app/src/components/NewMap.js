@@ -101,10 +101,10 @@ const Direction = () => {
       // Clustering logic
       mapRef.current.addSource("crimes", {
         type: "geojson",
-        data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/components/data_1.geojson",
+        data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson",
         cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 75,
+        clusterMaxZoom: 20,
+        clusterRadius: 50,
       });
 
       mapRef.current.addLayer({
@@ -746,7 +746,7 @@ const Direction = () => {
             </p>
 
             {/* Chakra UI Button */}
-            <Button onClick={handleReset} colorScheme="red">
+            <Button onClick={handleReset} colorScheme="red" pl={4}>
               Reset 
             </Button>
           </div>
