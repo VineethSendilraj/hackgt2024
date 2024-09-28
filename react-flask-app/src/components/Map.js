@@ -5,7 +5,6 @@ import axios from "axios";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import './Map.scss'; // Import CSS file for custom styling
 import {Car, Footprints, Bike } from 'lucide-react'; // Import from react-icons
-import token from ".env"
 
 const Direction = () => {
   const mapContainerRef = useRef(null);
@@ -16,11 +15,12 @@ const Direction = () => {
   const [mode, setMode] = useState('walking'); // Default mode is walking
   const mapRef = useRef();
   const geocodingClient = MapboxGeocoding({
-    accessToken: token,
+    accessToken: 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ'
+    ,
   });
 
   useEffect(() => {
-    mapboxgl.accessToken = token;
+    mapboxgl.accessToken = "pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ";
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
@@ -91,7 +91,7 @@ const Direction = () => {
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': '#11b4da',
-          'circle-radius': 6, // Slightly larger radius for unclustered points
+          'circle-radius': 8, // Slightly larger radius for unclustered points
           'circle-opacity': 0.9, // Higher opacity for visibility
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff',
@@ -120,17 +120,33 @@ const Direction = () => {
         const features = mapRef.current.queryRenderedFeatures(e.point, {
           layers: ['clusters']
         });
-        const clusterId = features[0].properties.cluster_id;
-        mapRef.current
-          .getSource('crimes')
-          .getClusterExpansionZoom(clusterId, (err, zoom) => {
-            if (err) return;
-
-            mapRef.current.easeTo({
-              center: features[0].geometry.coordinates,
-              zoom: zoom
+      
+        if (features.length > 0) {
+          const clusterId = features[0].properties.cluster_id;
+      
+          // Get the expansion zoom level of the cluster
+          mapRef.current
+            .getSource('crimes')
+            .getClusterExpansionZoom(clusterId, (err, zoom) => {
+              if (err) return;
+      
+              mapRef.current.easeTo({
+                center: features[0].geometry.coordinates,
+                zoom: zoom
+              });
             });
+      
+          // Get cluster leaves (the actual points in the cluster)
+          mapRef.current.getSource('crimes').getClusterLeaves(clusterId, features[0].properties.point_count, 0, (err, points) => {
+            if (err) return;
+      
+            // Extract coordinates of the points in the cluster
+            const coordinates = points.map(point => point.geometry.coordinates);
+            
+            // Log the coordinates to the console
+            console.log('Coordinates of the clicked cluster:', coordinates);
           });
+        }
       });
 
       // Popup for unclustered points
@@ -155,6 +171,7 @@ const Direction = () => {
           .addTo(mapRef.current);
       });
       
+
       // Change cursor style on mouse enter/leave
       mapRef.current.on('mouseenter', 'clusters', () => {
         mapRef.current.getCanvas().style.cursor = 'pointer';
@@ -193,6 +210,9 @@ const Direction = () => {
         ), {
           padding: 50,
         });
+
+
+        
       }
     });
 
