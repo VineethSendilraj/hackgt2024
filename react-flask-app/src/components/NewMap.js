@@ -18,6 +18,7 @@ const Direction = () => {
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
   const mapToken = process.env.REACT_APP_MAP_TOKEN;
+
   const geocodingClient = MapboxGeocoding({
     accessToken: mapToken,
   });
@@ -164,6 +165,10 @@ const Direction = () => {
     }
   }, [mode, origin, destination]);
 
+  const handleStyleChange = (newStyle) => {
+    setMapStyle(newStyle);
+  };
+
   const getRoute = async (start, end, mode) => {
     // Accept mode as a parameter
     const query = await fetch(
@@ -289,6 +294,29 @@ const Direction = () => {
 
   return (
     <div className="map-container">
+      <div className="map-mode-buttons">
+        <button
+          onClick={() =>
+            handleStyleChange("mapbox://styles/mapbox/streets-v12")
+          }
+        >
+          Day
+        </button>
+        <button
+          onClick={() =>
+            handleStyleChange("mapbox://styles/mapbox/navigation-night-v1")
+          }
+        >
+          Night
+        </button>
+        <button
+          onClick={() =>
+            handleStyleChange("mapbox://styles/mapbox/satellite-streets-v12")
+          }
+        >
+          Satellite
+        </button>
+      </div>
       <div className="controls">
         <input
           type="text"
