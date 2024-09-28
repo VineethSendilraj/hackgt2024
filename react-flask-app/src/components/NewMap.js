@@ -575,6 +575,69 @@ const Direction = () => {
     }
   };
 
+const UpdatedMap = (filtered) => {
+        mapRef.current.addLayer({
+          id: "clusters",
+          type: "circle",
+          source: "crimes",
+          filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
+          paint: {
+            "circle-color": [
+              "step",
+              ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered],
+              "#51bbd6",
+              100,
+              "#f1f075",
+              750,
+              "#f28cb1",
+            ],
+            "circle-radius": [
+              "step",
+              ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
+              25,
+              100,
+              35,
+              750,
+              45,
+            ],
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-opacity": 0.6,
+          },
+        });
+  
+        mapRef.current.addLayer({
+          id: "cluster-count",
+          type: "symbol",
+          source: "crimes",
+          filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
+          layout: {
+            "text-field": ["get", "point_count_abbreviated"],
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 14,
+          },
+        });
+  
+        mapRef.current.addLayer({
+          id: "unclustered-point",
+          type: "circle",
+          source: "crimes",
+          filter: ["!", ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered]],
+          paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 6,
+            "circle-opacity": 0.9,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-opacity": 0.6,
+          },
+        });
+    };
+  
+  
+
+
   const updateFilter = (id, key, value) => {
     const updatedFilters = { ...filters };
     updatedFilters[id][key] = value;
