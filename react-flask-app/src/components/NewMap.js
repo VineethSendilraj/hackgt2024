@@ -171,16 +171,28 @@ const Direction = () => {
           layers: ["clusters"],
         });
         const clusterId = features[0].properties.cluster_id;
-        mapRef.current
-          .getSource("crimes")
-          .getClusterExpansionZoom(clusterId, (err, zoom) => {
-            if (err) return;
-
-            mapRef.current.easeTo({
-              center: features[0].geometry.coordinates,
-              zoom: zoom,
-            });
+    
+        // Access the source object
+        const clusterSource = mapRef.current.getSource("crimes");
+    
+        clusterSource.getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
+    
+          mapRef.current.easeTo({
+            center: features[0].geometry.coordinates,
+            zoom: zoom,
           });
+        });
+    
+        // Get children of the cluster
+        clusterSource.getClusterChildren(clusterId, (err, aFeatures) => {
+          console.log("getClusterChildren", err, aFeatures);
+        });
+    
+        // Get all points under a cluster; adjust the 'limit' value if needed
+        clusterSource.getClusterLeaves(clusterId, 100, 0, (err, aFeatures) => {
+          console.log("getClusterLeaves", err, aFeatures);
+        });
       });
 
       // Popup for unclustered points
