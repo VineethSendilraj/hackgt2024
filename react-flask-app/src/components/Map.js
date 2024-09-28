@@ -16,7 +16,7 @@ const Direction = () => {
   );
   const [isFocused, setIsFocused] = useState(false);
   const [origin, setOrigin] = useState("");
-  const destination = [88.3639, 22.5726];
+  const destination = useState("");
   const [routeGeometry, setRouteGeometry] = useState(null);
   const [originCord, setOriginCord] = useState([]);
   let originCoordinates = [];
@@ -162,6 +162,7 @@ const Direction = () => {
     if (origin.length > 2) {
       try {
         const origin = document.getElementById("fromAddress").value;
+        const dest
         if (origin.length > 2) {
           try {
             const response = await geocodingClient
@@ -262,6 +263,7 @@ const Direction = () => {
               autoComplete="off"
             />
 
+            <br></br>
 
             <strong style={{ color: "white" }}>To</strong>
             <label htmlFor="toAddress" style={{ display: "none" }}>

@@ -123,6 +123,13 @@
       width: 80%;
       margin-left: 10px;
     }
+    #toAddress {
+      outline: none;
+      border: none;
+      padding: 2px 5px;
+      width: 80%;
+      margin-left: 10px;
+    }
     .input-focused::placeholder {
       opacity: 0;
       transition: opacity 0.3s ease;
