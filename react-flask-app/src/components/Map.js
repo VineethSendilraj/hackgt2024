@@ -4,7 +4,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import axios from "axios";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import "./Map.css"; // Import CSS file for custom styling
-import { Car, Footprints, Bike } from "lucide-react"; // Import from react-icons
+import { Car, Footprints, Bike } from "lucide-react"; // Import from react-icon
+import FilterForm from "./FilterForm";
 
 const Direction = () => {
   const mapContainerRef = useRef(null);

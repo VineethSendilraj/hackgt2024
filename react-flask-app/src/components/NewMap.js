@@ -5,18 +5,28 @@ import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import "./Map.css";
 import { Car, Footprints, Bike } from "lucide-react";
 
-import { Tabs, TabList, Tab } from "@chakra-ui/react";
+import { Tabs, TabList, Tab, useControllableState } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
-import { Button, ButtonGroup } from '@chakra-ui/react'
+import {ButtonGroup } from '@chakra-ui/react'
 
-import FilterForm from './FilterForm';
+
+// Implementing Filter Form
 import {
+  Button,
+  FormControl,
+  FormLabel,
+  Checkbox,
+  CheckboxGroup,
+  Input,
+  Stack,
+  SimpleGrid,
   Accordion,
   AccordionItem,
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
 } from '@chakra-ui/react';
+
 
 import {
   FaLocationDot,
@@ -48,11 +58,18 @@ const Direction = () => {
   const [destinationCoords, setDestinationCoords] = useState(null);
 
   // Other states
+
+
   const [mode, setMode] = useState("walking");
+  const [filters, setFilters] = useState(null);
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
   const [showOriginSearch, setShowOriginSearch] = useState(false); // Visibility for origin search icon
   const [showDestinationSearch, setShowDestinationSearch] = useState(false); // Visibility for destination search icon
+
+  // add the state
+  const [year, setYear] = useState(filters[id].year)
+  const [crime, setCrime] = useState(filter[id].crime)
 
   const mapToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
 
@@ -313,6 +330,11 @@ const Direction = () => {
     setMode(selectedMode);
   };
 
+  const handlefilterChange = (selectedFilter) => {
+    setFilters(selectedFilter)
+  }
+
+
   // Function to calculate route based on input fields
   const calculateRoute = async () => {
     if (!originInput.trim() || !destinationInput.trim()) {
@@ -497,6 +519,8 @@ const Direction = () => {
       });
     }
   };
+
+
 
   const newFilter = () => {
     setFilters({ ...filters, [countID]: { id: countID } });
