@@ -4,6 +4,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import axios from "axios";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import './Map.scss'; // Import CSS file for custom styling
+import {Car, Footprints, Bike } from 'lucide-react'; // Import from react-icons
+import token from ".env"
 
 const Direction = () => {
   const mapContainerRef = useRef(null);
@@ -11,13 +13,14 @@ const Direction = () => {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [routeGeometry, setRouteGeometry] = useState(null);
+  const [mode, setMode] = useState('walking'); // Default mode is walking
   const mapRef = useRef();
   const geocodingClient = MapboxGeocoding({
-    accessToken: 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ',
+    accessToken: token,
   });
 
   useEffect(() => {
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
+    mapboxgl.accessToken = token;
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
@@ -26,6 +29,8 @@ const Direction = () => {
     });
 
     mapRef.current.on("load", () => {
+      // Clustering logic, route drawing, etc.
+      // Same as in your current setup
       // Clustering logic
       mapRef.current.addSource('crimes', {
         type: 'geojson',
@@ -215,7 +220,7 @@ const Direction = () => {
         const destinationCoordinates = destinationResponse.body.features[0].center;
 
         const directionsResponse = await axios.get(
-          `https://api.mapbox.com/directions/v5/mapbox/driving/${originCoordinates.join(',')};${destinationCoordinates.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`
+          `https://api.mapbox.com/directions/v5/mapbox/${mode}/${originCoordinates.join(',')};${destinationCoordinates.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`
         );
 
         const route = directionsResponse.data.routes[0].geometry;
@@ -224,6 +229,10 @@ const Direction = () => {
         console.error("Error calculating route:", error);
       }
     }
+  };
+
+  const handleModeChange = (selectedMode) => {
+    setMode(selectedMode);
   };
 
   return (
@@ -243,6 +252,28 @@ const Direction = () => {
           value={destination}
           onChange={(e) => handleInputChange(e, setDestination)}
         />
+
+        <div className="mode-buttons">
+          <button
+            className={`mode-button ${mode === 'driving' ? 'selected' : ''}`}
+            onClick={() => handleModeChange('driving')}
+          >
+            <Car /> Car
+          </button>
+          <button
+            className={`mode-button ${mode === 'walking' ? 'selected' : ''}`}
+            onClick={() => handleModeChange('walking')}
+          >
+            <Footprints /> Walking
+          </button>
+          <button
+            className={`mode-button ${mode === 'cycling' ? 'selected' : ''}`}
+            onClick={() => handleModeChange('cycling')}
+          >
+            <Bike /> Biking
+          </button>
+        </div>
+
         <button onClick={calculateRoute}>Get Directions</button>
       </div>
       <div

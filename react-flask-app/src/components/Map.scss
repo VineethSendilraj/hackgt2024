@@ -1,49 +1,31 @@
-/* Map should take up the entire page */
-.map-container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* Make the map span full screen */
-.map {
-  width: 100%;
-  height: 100%;
-}
-
-/* Positioning the input controls on top of the map */
 .controls {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(255, 255, 255, 0.8); /* Slight transparency */
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mode-buttons {
   display: flex;
   gap: 10px;
-  z-index: 10;
+  margin-top: 10px;
 }
 
-/* Styling the inputs */
-.controls input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 200px;
+.mode-button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-/* Styling the button */
-.controls button {
-  padding: 8px 12px;
+.mode-button.selected {
   background-color: #007bff;
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
-.controls button:hover {
+button:hover {
   background-color: #0056b3;
 }
