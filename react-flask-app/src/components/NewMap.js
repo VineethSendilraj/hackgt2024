@@ -8,6 +8,8 @@ import { Car, Footprints, Bike } from "lucide-react";
 import { Tabs, TabList, Tab, useControllableState } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
 import {ButtonGroup } from '@chakra-ui/react'
+import { Image } from '@chakra-ui/react'
+import { Text } from "@chakra-ui/react";
 
 
 // Implementing Filter Form
@@ -112,6 +114,8 @@ const Direction = () => {
         type: "circle",
         source: "crimes",
         filter: ["has", "point_count"],
+        // get only the properties that match the filter
+
         paint: {
           "circle-color": [
             "step",
@@ -538,11 +542,9 @@ const Direction = () => {
 
   const triggerUpdate = () => {
     setUpdate(update + 1);
-    console.log(filters);  // Here you would handle updating the map based on filters
+    
+    
   };
-
-
-
 
   return (
     <div className="map-container">
@@ -579,6 +581,22 @@ const Direction = () => {
 
       {/* Controls for Origin and Destination */}
       <div className="controls">
+
+        <div className="logo-container" style={{ display: "flex", alignItems: "center" }}>
+          <Text
+            fontFamily="Avenir, sans-serif"
+            fontSize="30px" // Adjust size as needed
+            marginRight="8px" // Adjust spacing as needed
+          >
+            safely
+          </Text>
+          <Image
+            borderRadius="full"
+            boxSize="50px" // Adjust the size as needed
+            src="https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/logo-removebg-preview.png"
+            alt="Logo"
+          />
+        </div>
         {/* Origin Input */}
         <div
           className="input-container"
