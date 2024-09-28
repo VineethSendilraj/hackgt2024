@@ -87,7 +87,7 @@ html {
   left: 20px; /* Move to the far left */
   display: flex;
   flex-direction: column; /* Stack input fields vertically */
-  background-color: #ffffffbb;
+  background-color: #ffffffcc;
   border-radius: 25px;
   gap: 10px;
   z-index: 10;

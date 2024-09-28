@@ -30,7 +30,8 @@ const Direction = () => {
   const [originSuggestions, setOriginSuggestions] = useState([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState([]);
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
-  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] =
+    useState(false);
 
   // State for coordinates
   const [originCoords, setOriginCoords] = useState(null);
@@ -517,7 +518,9 @@ const Direction = () => {
             onChange={(e) => handleInputChange(e, setOriginInput)}
             onKeyDown={handleKeyDown}
             onFocus={() => setShowOriginSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowOriginSuggestions(false), 100)} // Delay to allow click
+            onBlur={() =>
+              setTimeout(() => setShowOriginSuggestions(false), 100)
+            } // Delay to allow click
           />
           {showOriginSearch && ( // Show icon only on hover
             <Search2Icon
@@ -555,12 +558,14 @@ const Direction = () => {
           <input
             type="text"
             id="destination"
-            placeholder="Enter destination or double-click on map to set"
+            placeholder="Enter destination or double-click on map"
             value={destinationInput}
             onChange={(e) => handleInputChange(e, setDestinationInput)}
             onKeyDown={handleKeyDown}
             onFocus={() => setShowDestinationSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 100)} // Delay to allow click
+            onBlur={() =>
+              setTimeout(() => setShowDestinationSuggestions(false), 100)
+            } // Delay to allow click
           />
           {showDestinationSearch && ( // Show icon only on hover
             <Search2Icon
