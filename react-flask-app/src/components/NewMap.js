@@ -713,7 +713,7 @@ const Direction = () => {
             </p>
 
             {/* Chakra UI Button */}
-            <Button onClick={handleReset} colorScheme="red">
+            <Button onClick={handleReset} colorScheme="red" pl={4}>
               Reset 
             </Button>
           </div>
