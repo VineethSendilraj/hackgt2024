@@ -101,7 +101,7 @@ const Direction = () => {
       // Clustering logic
       mapRef.current.addSource("crimes", {
         type: "geojson",
-        data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/components/data_1.geojson",
+        data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/2019_2020.geojson",
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 75,
