@@ -81,6 +81,7 @@ const Direction = () => {
   const [showOriginSearch, setShowOriginSearch] = useState(false); // Visibility for origin search icon
   const [showDestinationSearch, setShowDestinationSearch] = useState(false); // Visibility for destination search icon
 
+  // add the state
 
   // Add this useEffect to log visible clusters (optional)
   useEffect(() => {
@@ -128,8 +129,6 @@ const Direction = () => {
 
     mapRef.current.on("load", () => {
       // Clustering logic
-
-      
       mapRef.current.addSource("crimes", {
         type: "geojson",
         data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson",
@@ -236,57 +235,46 @@ const Direction = () => {
           .addTo(mapRef.current);
       });
 
-    // Change cursor style on mouse enter/leave
-    mapRef.current.on("mouseenter", "clusters", () => {
-      mapRef.current.getCanvas().style.cursor = "pointer";
-    });
-    mapRef.current.on("mouseleave", "clusters", () => {
-      mapRef.current.getCanvas().style.cursor = "";
-    });
-
-    // Add double-click event for setting destination
-    mapRef.current.on("dblclick", (event) => {
-      (async () => {
-        const coords = [event.lngLat.lng, event.lngLat.lat];
-        const address = await reverseGeocodeAddress(coords);
-
-        if (address) {
-          setDestinationInput(address);
-          setDestinationCoords(coords);
-
+      // Change cursor style on mouse enter/leave
+      mapRef.current.on("mouseenter", "clusters", () => {
+        mapRef.current.getCanvas().style.cursor = "pointer";
+      });
+      mapRef.current.on("mouseleave", "clusters", () => {
+        mapRef.current.getCanvas().style.cursor = "";
+      });
+        
+      // Add double-click event for setting destination
+      mapRef.current.on("dblclick", (event) => {
+        (async () => {
+          const coords = [event.lngLat.lng, event.lngLat.lat];
+          const address = await reverseGeocodeAddress(coords);
           const pointsToAvoid = visibleClusters
-            .slice(0, 50) // Take top 50 clusters
-            .map(cluster => `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`)
-            .join(", ");
+          .slice(0, 50) // Take top 50 clusters
+          .map(cluster => `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`)
+          .join(", ");
 
-          try {
-            const response = await axios.get("https://api.mapbox.com/directions/v5/mapbox/driving", {
-              params: {
-                coordinates: [originCoords, coords],
-                access_token: mapToken,
-                point: pointsToAvoid, // Exclude top 50 clusters
-                alternatives: true, // Optional
-                // Add other parameters as needed
-              },
-            });
-
-            console.log("Route response:", response.data);
-            // Handle the response as needed (e.g., update the map)
-          } catch (error) {
-            console.error("Error fetching route:", error);
+          console.log("Points to avoid:", pointsToAvoid);
+          
+          if (address) {
+            setDestinationInput(address);
+            setDestinationCoords(coords);
+            if (originCoords) {
+              getRoute(originCoords, coords, mode);
+            }
+          } else {
+            console.error("Reverse geocoding failed for destination.");
           }
-        } else {
-          console.error("Reverse geocoding failed for destination.");
-        }
-      })();
+        })();
+      });
+
+      // Fetch visible clusters initially
+      fetchVisibleClusters();
+
+      // Set up event listeners to update visible clusters on view changes
+      mapRef.current.on("moveend", fetchVisibleClusters);
+      mapRef.current.on("zoomend", fetchVisibleClusters);
+
     });
-
-    // Fetch visible clusters initially
-    fetchVisibleClusters();
-
-    // Set up event listeners to update visible clusters on view changes
-    mapRef.current.on("moveend", fetchVisibleClusters);
-    mapRef.current.on("zoomend", fetchVisibleClusters);
 
     // Cleanup on unmount
     return () => {
@@ -296,16 +284,16 @@ const Direction = () => {
         mapRef.current.remove();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapStyle, originCoords, mode]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapStyle, originCoords, mode]);
+
+        
   useEffect(() => {
     if (originCoords && destinationCoords) {
       getRoute(originCoords, destinationCoords, mode);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, originCoords, destinationCoords]);
-
-
 
   // Function to handle map style changes
   const handleStyleChange = (newStyle) => {
@@ -653,10 +641,7 @@ const UpdatedMap = (filtered) => {
   const updateFilter = (id, key, value) => {
     const updatedFilters = { ...filters };
     updatedFilters[id][key] = value;
-    // we are going to call a function which changes the clusters displayedc
-    UpdatedMap(updatedFilters[id][key])
     setFilters(updatedFilters);
-
   };
 
   const deleteFilter = (id) => {
@@ -845,14 +830,13 @@ const UpdatedMap = (filtered) => {
             </AccordionButton>
             <AccordionPanel>
               <CheckboxGroup
-                onChange={(e) => setTimeout(() => updateFilter(filterId, 'crime', e), 1000)}
+                onChange={(e) => updateFilter(filterId, 'crime', e)}
                 defaultValue={filters[filterId].crime}
               >
                 <SimpleGrid spacing={5} columns={2}>
                   <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
                   <Checkbox value="Auto Theft">Auto Theft</Checkbox>
                   <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
-   
                   <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
                   <Checkbox value="Burglary">Burglary</Checkbox>
                   <Checkbox value="Homicide">Homicide</Checkbox>
