@@ -28,20 +28,19 @@ html {
   gap: 10px;
   z-index: 10;
   padding: 10px;
-}
-
-#origin,
-#destination {
-  width: 300px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
+  /* center horizontally */
+  justify-content: center;
+  /* center vertically */
+  align-items: center;
 }
 
 .mode-buttons {
   display: flex;
   gap: 10px;
+  /* center horizontally */
+  justify-content: center;
+  /* center vertically */
+  align-items: center;
 }
 
 .mode-button {
@@ -92,13 +91,15 @@ html {
   align-items: center; /* Center items vertically */
 }
 
-.direction-header p {
-  margin-bottom: 10px;
-  font-size: 1rem;
+.direction-header span {
+  display: flex; /* Ensure icons are aligned */
+  align-items: center; /* Center icons vertically */
+  margin-right: 10px; /* Adjust space between icon and text */
 }
 
-.direction-header span {
-  margin-right: 20px; /* Space between icon and text */
+.direction-header p {
+  margin: 0; /* Remove margin to align text with icons */
+  font-size: 1rem;
 }
 
 #instructions ol {
@@ -116,17 +117,23 @@ html {
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* .map-mode-buttons button {
-  padding: 8px 16px;
-  margin: 5px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.input-container {
+  width: 300px;
+  padding: 15px !important;
+  border-radius: 10px !important;
+  display: flex; /* Align items in a row */
+  align-items: center; /* Center items vertically */
+  margin-bottom: 5px; /* Space between input fields */
+  background-color: #ffffff; /* Set background color */
+  border-radius: 5px; /* Match input field border radius  */
+  padding: 10px; /* Add padding to create space around the icon and input */
 }
 
-.map-mode-buttons button:hover {
-  background-color: #0056b3;
-} */
+.input-container input {
+  padding-left: 5px;
+  border: none; /* Remove border from input */
+  outline: none; /* Remove outline on focus */
+  flex: 1; /* Allow input to take remaining space */
+  font-size: 16px; /* Match input font size */
+  background: transparent; /* Make background transparent to show container's background */
+}
