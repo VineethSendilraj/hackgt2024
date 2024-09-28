@@ -26,6 +26,12 @@ const Direction = () => {
   const [originInput, setOriginInput] = useState("");
   const [destinationInput, setDestinationInput] = useState("");
 
+  // State for suggestions
+  const [originSuggestions, setOriginSuggestions] = useState([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState([]);
+  const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+
   // State for coordinates
   const [originCoords, setOriginCoords] = useState(null);
   const [destinationCoords, setDestinationCoords] = useState(null);
@@ -363,6 +369,104 @@ const Direction = () => {
     return null;
   };
 
+  // Function to handle origin suggestion selection
+  const handleOriginSelect = (feature) => {
+    setOriginInput(feature.place_name);
+    setOriginCoords(feature.center);
+    setOriginSuggestions([]);
+    setShowOriginSuggestions(false);
+    if (destinationCoords) {
+      getRoute(feature.center, destinationCoords, mode);
+    }
+  };
+
+  // Function to handle destination suggestion selection
+  const handleDestinationSelect = (feature) => {
+    setDestinationInput(feature.place_name);
+    setDestinationCoords(feature.center);
+    setDestinationSuggestions([]);
+    setShowDestinationSuggestions(false);
+    if (originCoords) {
+      getRoute(originCoords, feature.center, mode);
+    }
+  };
+
+  // Fetch origin suggestions with debounce
+  useEffect(() => {
+    const fetchOriginSuggestions = async () => {
+      if (originInput.trim() === "") {
+        setOriginSuggestions([]);
+        return;
+      }
+
+      try {
+        const response = await geocodingClient
+          .forwardGeocode({
+            query: originInput,
+            limit: 5,
+          })
+          .send();
+
+        if (
+          response &&
+          response.body &&
+          response.body.features &&
+          response.body.features.length > 0
+        ) {
+          setOriginSuggestions(response.body.features);
+        } else {
+          setOriginSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching origin suggestions:", error);
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      fetchOriginSuggestions();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [originInput, geocodingClient]);
+
+  // Fetch destination suggestions with debounce
+  useEffect(() => {
+    const fetchDestinationSuggestions = async () => {
+      if (destinationInput.trim() === "") {
+        setDestinationSuggestions([]);
+        return;
+      }
+
+      try {
+        const response = await geocodingClient
+          .forwardGeocode({
+            query: destinationInput,
+            limit: 5,
+          })
+          .send();
+
+        if (
+          response &&
+          response.body &&
+          response.body.features &&
+          response.body.features.length > 0
+        ) {
+          setDestinationSuggestions(response.body.features);
+        } else {
+          setDestinationSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching destination suggestions:", error);
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      fetchDestinationSuggestions();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [destinationInput, geocodingClient]);
+
   return (
     <div className="map-container">
       {/* Map Style Selection */}
@@ -412,6 +516,8 @@ const Direction = () => {
             value={originInput}
             onChange={(e) => handleInputChange(e, setOriginInput)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setShowOriginSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowOriginSuggestions(false), 100)} // Delay to allow click
           />
           {showOriginSearch && ( // Show icon only on hover
             <Search2Icon
@@ -423,6 +529,19 @@ const Direction = () => {
               }}
               style={{ cursor: "pointer" }} // Change cursor to pointer
             />
+          )}
+          {showOriginSuggestions && originSuggestions.length > 0 && (
+            <ul className="suggestions-list">
+              {originSuggestions.map((feature) => (
+                <li
+                  key={feature.id}
+                  onClick={() => handleOriginSelect(feature)}
+                  className="suggestion-item"
+                >
+                  {feature.place_name}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
@@ -440,6 +559,8 @@ const Direction = () => {
             value={destinationInput}
             onChange={(e) => handleInputChange(e, setDestinationInput)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setShowDestinationSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 100)} // Delay to allow click
           />
           {showDestinationSearch && ( // Show icon only on hover
             <Search2Icon
@@ -451,6 +572,19 @@ const Direction = () => {
               }}
               style={{ cursor: "pointer" }} // Change cursor to pointer
             />
+          )}
+          {showDestinationSuggestions && destinationSuggestions.length > 0 && (
+            <ul className="suggestions-list">
+              {destinationSuggestions.map((feature) => (
+                <li
+                  key={feature.id}
+                  onClick={() => handleDestinationSelect(feature)}
+                  className="suggestion-item"
+                >
+                  {feature.place_name}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
