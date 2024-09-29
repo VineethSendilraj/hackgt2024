@@ -192,3 +192,12 @@ html {
 .suggestion-item:hover {
   background-color: #f0f0f0;
 }
+
+.danger .mapboxgl-popup-content {
+  font:
+    400 15px/22px 'Source Sans Pro',
+    'Helvetica Neue',
+    sans-serif;
+  padding: 0;
+  width: 180px;
+}
