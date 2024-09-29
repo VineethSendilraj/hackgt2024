@@ -70,7 +70,7 @@ const Direction = () => {
   const [destinationCoords, setDestinationCoords] = useState(null);
 
   // Other states
-  const [mode, setMode] = useState("walking");
+  const [mode, setMode] = useState("driving");
 
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
@@ -176,7 +176,7 @@ const Direction = () => {
       container: mapContainerRef.current,
       style: mapStyle,
       center: currentCenter,
-      zoom: 14,
+      zoom: 2,
       doubleClickZoom: false, // Disable default double-click zoom
     });
 
@@ -509,7 +509,7 @@ const Direction = () => {
             "line-cap": "round",
           },
           paint: {
-            "line-color": "#3887be",
+            "line-color": "#123499",
             "line-width": 5,
             "line-opacity": 0.75,
           },
@@ -657,6 +657,12 @@ const Direction = () => {
       getRoute(originCoords, feature.center, mode);
     }
   };
+
+  useEffect(() => {
+    handleCrimeFiltersChange(
+      Object.keys(crimeFilters).filter((crimeType) => crimeFilters[crimeType])
+    );
+  }, []);
 
   // Fetch origin suggestions with debounce
   useEffect(() => {
