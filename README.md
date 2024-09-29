@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://github.com/VineethSendilraj/hackgt2024/blob/main/logo-removebg-preview.png", width="300"/>
+  <img src="https://github.com/VineethSendilraj/hackgt2024/blob/main/logo.png", width="300"/>
 </p>
 
 # safely
