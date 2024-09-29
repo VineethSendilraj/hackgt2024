@@ -31,6 +31,18 @@ import {
   FaSatellite,
 } from "react-icons/fa6";
 
+// Define this mapping outside the Direction component
+const crimeTypeLabels = {
+  "AGG ASSAULT": "Aggravated Assault",
+  "AUTO THEFT": "Auto Theft",
+  "LARCENY-FROM VEHICLE": "Larceny from Vehicle",
+  "LARCENY-NON VEHICLE": "Larceny (Non-Vehicle)",
+  BURGLARY: "Burglary",
+  HOMICIDE: "Homicide",
+  ROBBERY: "Robbery",
+};
+
+
 const Direction = () => {
   const mapContainerRef = useRef(null);
 
@@ -88,6 +100,7 @@ const Direction = () => {
     HOMICIDE: true,
     ROBBERY: true,
   });
+
 
   // Function to handle changes in crime filters
   const handleCrimeFiltersChange = (checkedValues) => {
@@ -1023,20 +1036,21 @@ const Direction = () => {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel>
-              <CheckboxGroup
-                value={Object.keys(crimeFilters).filter(
-                  (crimeType) => crimeFilters[crimeType]
-                )}
-                onChange={handleCrimeFiltersChange}
-              >
-                <SimpleGrid spacing={5} columns={2}>
-                  {Object.keys(crimeFilters).map((crimeType) => (
-                    <Checkbox key={crimeType} value={crimeType}>
-                      {crimeType}
-                    </Checkbox>
-                  ))}
-                </SimpleGrid>
-              </CheckboxGroup>
+            <CheckboxGroup
+              value={Object.keys(crimeFilters).filter(
+                (crimeType) => crimeFilters[crimeType]
+              )}
+              onChange={handleCrimeFiltersChange}
+            >
+              <SimpleGrid spacing={5} columns={2}>
+                {Object.keys(crimeFilters).map((crimeType) => (
+                  <Checkbox key={crimeType} value={crimeType}>
+                    {crimeTypeLabels[crimeType] || crimeType}
+                  </Checkbox>
+                ))}
+              </SimpleGrid>
+            </CheckboxGroup>
+
             </AccordionPanel>
           </AccordionItem>
         </Accordion>
