@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react"; // Added useCallback
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
@@ -81,6 +81,27 @@ const Direction = () => {
 
   // Ref to store the latest visible clusters
   const visibleClustersRef = useRef(visibleClusters);
+
+  const [allCrimes, setAllCrimes] = useState([]); // Added state for all crimes
+  const [filteredCrimes, setFilteredCrimes] = useState([]); // Added state for filtered crimes
+
+  const fetchCrimes = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson"
+      );
+      const data = await response.json();
+      setAllCrimes(data.features);
+      setFilteredCrimes(data.features); // Initially, all crimes are visible
+      console.log("Fetched Crimes Data:", data.features); // Log the fetched data
+    } catch (error) {
+      console.error("Error fetching crime data:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCrimes(); // Call fetchCrimes when the component mounts
+  }, [fetchCrimes]);
 
   const [currentCenter, setCurrentCenter] = useState([-84.3879824, 33.7489954]);
 
@@ -262,22 +283,22 @@ const Direction = () => {
         (async () => {
           const coords = [event.lngLat.lng, event.lngLat.lat];
           const address = await reverseGeocodeAddress(coords);
-      
+
           if (address) {
             setDestinationInput(address);
             setDestinationCoords(coords);
-      
+
             // Zoom to the clicked location
-      
+
             // Ensure clusters are fetched after the zoom completes
             mapRef.current.once("moveend", () => {
               // Use the Ref to access the latest visibleClusters
               const top50Clusters = [...visibleClustersRef.current]
                 .sort((a, b) => b.pointCount - a.pointCount)
                 .slice(0, 50);
-      
+
               console.log("Top 50 clusters:", top50Clusters);
-      
+
               // Prepare pointsToAvoid from the top 50 clusters
               const pointsToAvoid = top50Clusters
                 .map(
@@ -285,9 +306,9 @@ const Direction = () => {
                     `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
                 )
                 .join(",");
-      
+
               console.log("Points to avoid:", pointsToAvoid);
-      
+
               if (originCoords) {
                 getRoute(originCoords, coords, mode, pointsToAvoid);
               }
@@ -297,7 +318,7 @@ const Direction = () => {
           }
         })();
       });
-      
+
       // Fetch visible clusters initially
       fetchVisibleClusters();
 
@@ -390,13 +411,12 @@ const Direction = () => {
       if (!json.routes || json.routes.length === 0) {
         console.error("No routes found");
 
-        // popup 
-        const popup = new mapboxgl.Popup({className: "danger"}).setText(
-          "No safe routes found, plotting dangerous route instead."
-        );
-
-
-
+        new mapboxgl.Popup()
+          .setLngLat(end)
+          .setHTML(
+            "<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>"
+          )
+          .addTo(mapRef.current);
 
         return;
       }
@@ -560,8 +580,6 @@ const Direction = () => {
     setOriginSuggestions([]);
     setShowOriginSuggestions(false);
 
-
-
     if (destinationCoords) {
       getRoute(feature.center, destinationCoords, mode);
     }
@@ -573,9 +591,8 @@ const Direction = () => {
     setDestinationCoords(feature.center);
     setDestinationSuggestions([]);
     setShowDestinationSuggestions(false);
-      // Zoom to the selected destination
+    // Zoom to the selected destination
     mapRef.current.flyTo({ center: feature.center, zoom: 14 });
-
 
     if (originCoords) {
       getRoute(originCoords, feature.center, mode);
@@ -587,7 +604,7 @@ const Direction = () => {
     const fetchOriginSuggestions = async () => {
       if (originInput.trim() === "") {
         setOriginSuggestions([]);
-        
+
         return;
       }
 
@@ -786,10 +803,12 @@ const Direction = () => {
   };
 
   return (
-
     <div className="map-container">
-      <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
-      <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet'/>
+      <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+      <link
+        href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css"
+        rel="stylesheet"
+      />
       {/* Map Style Selection */}
       <div className="map-mode-buttons">
         <Tabs variant="soft-rounded" colorScheme="green">
@@ -878,7 +897,6 @@ const Direction = () => {
                 <li
                   key={feature.id}
                   onClick={() => handleOriginSelect(feature)}
-                  
                   className="suggestion-item"
                 >
                   {feature.place_name}
@@ -1027,8 +1045,6 @@ const Direction = () => {
           </ol>
         </div>
       )}
-
-
     </div>
   );
 };

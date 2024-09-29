@@ -37,7 +37,25 @@ import {
   FaSatellite,
 } from "react-icons/fa6";
 
+
+var staticUrl = "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson";
+$.getJSON(staticUrl, function(data) {
+  console.log("This is an example of a static JSON file being served by a web server.")
+  console.log(data);
+});
+
+
 const Direction = () => {
+
+
+  useEffect(() => { 
+    console.log(data)
+    const firstFeature = data.features[0];
+    console.log(firstFeature); // Access geometry type
+    console.log(firstFeature.properties.Day_Number); // Access coordinates
+
+  }, []);
+  
   const mapContainerRef = useRef(null);
 
   // State for map style
@@ -128,6 +146,7 @@ const Direction = () => {
     };
 
     mapRef.current.on("load", () => {
+
       // Clustering logic
       mapRef.current.addSource("crimes", {
         type: "geojson",
@@ -576,80 +595,7 @@ const Direction = () => {
   };
 
 const UpdatedMap = (filtered) => {  
-  fetch('/2019_2020.geojson')
-  .then(response => response.json())
-  .then(data => {
-    console.log(data)
-    crimes = data
-  })
 
-  console.log(crimes.feature.properties)
-
-
-  for(const feature of crimes.features){
-    const crim = feature.properties.Crime_Type
-    if(filtered.includes(crim)){
-
-    }
-
-  }
-  mapRef.current.addLayer({
-    id: "clusters",
-    type: "circle",
-    source: "crimes",
-    filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
-    paint: {
-      "circle-color": [
-        "step",
-        ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered],
-        "#51bbd6",
-        100,
-        "#f1f075",
-        750,
-        "#f28cb1",
-      ],
-      "circle-radius": [
-        "step",
-        ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
-        25,
-        100,
-        35,
-        750,
-        45,
-      ],
-      "circle-opacity": 0.8,
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#fff",
-      "circle-stroke-opacity": 0.6,
-    },
-  });
-
-  mapRef.current.addLayer({
-    id: "cluster-count",
-    type: "symbol",
-    source: "crimes",
-    filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
-    layout: {
-      "text-field": ["get", "point_count_abbreviated"],
-      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-      "text-size": 14,
-    },
-  });
-
-  mapRef.current.addLayer({
-    id: "unclustered-point",
-    type: "circle",
-    source: "crimes",
-    filter: ["!", ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered]],
-    paint: {
-      "circle-color": "#11b4da",
-      "circle-radius": 6,
-      "circle-opacity": 0.9,
-      "circle-stroke-width": 2,
-      "circle-stroke-color": "#fff",
-      "circle-stroke-opacity": 0.6,
-    },
-  });
   };
   
 
@@ -841,17 +787,17 @@ const UpdatedMap = (filtered) => {
             </AccordionButton>
             <AccordionPanel>
               <CheckboxGroup
-                onChange={(e) => setTimeout(() => updateFilter(filterId, 'crime', e),1000)}
-                defaultValue={filters[filterId].crime}
+                onChange={(e) => setTimeout(() => mapRef.setLayoutProperty(id,'visbility', e.target.checked ? 'visible': 'none'),1000)}
+                // defaultValue={filters[filterId].crime}
               >
                 <SimpleGrid spacing={5} columns={2}>
-                  <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
-                  <Checkbox value="Auto Theft">Auto Theft</Checkbox>
-                  <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
-                  <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
-                  <Checkbox value="Burglary">Burglary</Checkbox>
-                  <Checkbox value="Homicide">Homicide</Checkbox>
-                  <Checkbox value="Robbery">Robbery</Checkbox>
+                  <Checkbox value="Aggravated Assault" id='AGG ASSAULT' defaultChecked>Aggravated Assault</Checkbox>
+                  <Checkbox value="Auto Theft" id="AUTO THEFT" defaultChecked>Auto Theft</Checkbox>
+                  <Checkbox value="Larceny-From Vehicle" id="LARCENY-FROM VEHICLE" defaultChecked>Larceny-From Vehicle</Checkbox>
+                  <Checkbox value="Larceny-Non Vehicle" id="LARCENY-NON VEHICLE" defaultChecked>Larceny-Non Vehicle</Checkbox>
+                  <Checkbox value="Burglary" id="BURGLARY" defaultChecked>Burglary</Checkbox>
+                  <Checkbox value="Homicide" id="Homicide" defaultChecked>Homicide</Checkbox>
+                  <Checkbox value="Robbery" id="ROBBERY" defaultChecked>Robbery</Checkbox>
                 </SimpleGrid>
               </CheckboxGroup>
               {Object.keys(filters).length > 1 && (
