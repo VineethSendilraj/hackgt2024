@@ -770,6 +770,12 @@ const Direction = () => {
     setFilteredCrimes(derivedFilteredCrimes);
   }, [derivedFilteredCrimes]);
 
+  useEffect(() => {
+    handleCrimeFiltersChange(
+      Object.keys(crimeFilters).filter((crimeType) => crimeFilters[crimeType])
+    );
+  }, [crimeFilters]);
+
   return (
     <div className="map-container">
       {/* Remove the script and link tags; they should be in your HTML */}
