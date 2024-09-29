@@ -249,6 +249,7 @@ const Direction = () => {
       });
 
       // Add double-click event for setting destination
+      // Add double-click event for setting destination
       mapRef.current.on("dblclick", (event) => {
         (async () => {
           const coords = [event.lngLat.lng, event.lngLat.lat];
@@ -267,7 +268,7 @@ const Direction = () => {
               (cluster) =>
                 `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
             )
-            .join(", ");
+            .join(","); // Use comma without space
 
           console.log("Points to avoid:", pointsToAvoid);
 
@@ -309,6 +310,26 @@ const Direction = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, originCoords, destinationCoords]);
 
+  useEffect(() => {
+    if (originCoords && destinationCoords) {
+      // Use the Ref to access the latest visibleClusters
+      const top50Clusters = [...visibleClustersRef.current]
+        .sort((a, b) => b.pointCount - a.pointCount)
+        .slice(0, 50);
+
+      // Prepare pointsToAvoid from the top 50 clusters
+      const pointsToAvoid = top50Clusters
+        .map(
+          (cluster) =>
+            `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
+        )
+        .join(",");
+
+      getRoute(originCoords, destinationCoords, mode, pointsToAvoid);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, originCoords, destinationCoords]);
+
   // Function to handle map style changes
   const handleStyleChange = (newStyle) => {
     setMapStyle(newStyle);
@@ -323,12 +344,20 @@ const Direction = () => {
   };
 
   // Function to get the route between two coordinates
-  const getRoute = async (start, end, mode) => {
+  // Function to get the route between two coordinates
+  const getRoute = async (start, end, mode, pointsToAvoid = "") => {
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/${mode}/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&overview=full&access_token=${mapToken}`,
-        { method: "GET" }
-      );
+      // Prepare the base URL
+      let url = `https://api.mapbox.com/directions/v5/mapbox/${mode}/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&overview=full&access_token=${mapToken}`;
+
+      // If pointsToAvoid is provided, include it in the URL
+      if (pointsToAvoid) {
+        console.log("Exclduding VALUE NOW: " + pointsToAvoid);
+        const excludeParam = encodeURIComponent(pointsToAvoid);
+        url += `&exclude=${excludeParam}`;
+      }
+
+      const response = await fetch(url, { method: "GET" });
       const json = await response.json();
 
       // Check if routes exist
@@ -415,7 +444,26 @@ const Direction = () => {
     if (originCoordsResult && destinationCoordsResult) {
       setOriginCoords(originCoordsResult);
       setDestinationCoords(destinationCoordsResult);
-      getRoute(originCoordsResult, destinationCoordsResult, mode);
+
+      // Use the Ref to access the latest visibleClusters
+      const top50Clusters = [...visibleClustersRef.current]
+        .sort((a, b) => b.pointCount - a.pointCount)
+        .slice(0, 50);
+
+      // Prepare pointsToAvoid from the top 50 clusters
+      const pointsToAvoid = top50Clusters
+        .map(
+          (cluster) =>
+            `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
+        )
+        .join(",");
+
+      getRoute(
+        originCoordsResult,
+        destinationCoordsResult,
+        mode,
+        pointsToAvoid
+      );
     } else {
       console.error("Geocoding failed for origin or destination.");
     }
