@@ -10,15 +10,6 @@
   align-items: center;
   z-index: 1000; /* Ensure it appears above other content */
 }
-.data-limitation-banner {
-  background-color: #ffcc00; /* Yellow background */
-  color: #333; /* Dark text color */
-  padding: 10px;
-  text-align: center;
-  font-weight: bold;
-  border-radius: 5px;
-  margin-bottom: 15px; /* Space below the banner */
-}
 
 .popup-content {
   background-color: white;
@@ -70,4 +61,25 @@ h3 {
 
 .close-button:hover {
   background-color: #0056b3;
+}
+
+.data-limitation-banner {
+  background-color: #ffcc00; /* Yellow background */
+  color: #333; /* Dark text color */
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 5px;
+  margin-bottom: 15px; /* Space below the banner */
+  width: 100%;
+}
+
+ol {
+  padding-left: 20px; /* Add padding to the left of the ordered list */
+  margin-bottom: 20px; /* Space below the list */
+}
+
+ol li {
+  margin-bottom: 5px; /* Space between list items */
+  text-align: left; /* Ensure text is left-aligned */
 }

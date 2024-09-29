@@ -25,11 +25,20 @@ const OnboardingPopup = ({ onClose }) => {
         <div className="section">
           <h3>How do I use Safely 🤔</h3>
           <p>
-            This application allows you to explore crime data in your area. You
-            can enter your origin and destination to find safe routes. Click on
-            the map to set your destination or use the search bar for quick
-            access.
+            Safely allows you to confidently and safely *pun intended* explore
+            crime data in your area. Here are the steps to get started:
           </p>
+          <ol>
+            <li>
+              Enter your origin and destination, or double click on the map, in
+              the search bar.
+            </li>
+            <li>Filter for specific crimes to narrow down the data.</li>
+            <li>
+              Visualize the map in 3D by right-clicking and dragging while
+              zoomed in.
+            </li>
+          </ol>
         </div>
 
         <button className="close-button" onClick={onClose}>
