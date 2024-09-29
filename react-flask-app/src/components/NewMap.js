@@ -17,6 +17,8 @@ import { ButtonGroup, Image, Text } from "@chakra-ui/react";
 
 import { GrPowerReset } from "react-icons/gr";
 
+import OnboardingPopup from "./OnboardingPopup";
+
 import {
   Button,
   Box,
@@ -105,6 +107,12 @@ const Direction = () => {
     HOMICIDE: true,
     ROBBERY: true,
   });
+
+  const [showPopup, setShowPopup] = useState(true); // State to manage popup visibility
+
+  const handleClosePopup = () => {
+    setShowPopup(false); // Close the popup
+  };
 
   // Function to handle changes in crime filters
   const handleCrimeFiltersChange = (checkedValues) => {
@@ -469,14 +477,12 @@ const Direction = () => {
       if (!json.routes || json.routes.length === 0) {
         console.error("No routes found");
 
-        /*
         new mapboxgl.Popup()
           .setLngLat(end)
           .setHTML(
             "<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>"
           )
           .addTo(mapRef.current);
-        */
 
         return;
       }
@@ -781,6 +787,8 @@ const Direction = () => {
   return (
     <div className="map-container">
       {/* Remove the script and link tags; they should be in your HTML */}
+      {showPopup && <OnboardingPopup onClose={handleClosePopup} />}{" "}
+      {/* Show popup if state is true */}
       {/* Map Style Selection */}
       <div className="map-mode-buttons">
         <Tabs variant="soft-rounded" colorScheme="green">
@@ -809,7 +817,6 @@ const Direction = () => {
           </TabList>
         </Tabs>
       </div>
-
       {/* Controls for Origin and Destination */}
       <div className="controls">
         <div
@@ -967,10 +974,8 @@ const Direction = () => {
           </AccordionItem>
         </Accordion>
       </div>
-
       {/* Map Display */}
       <div ref={mapContainerRef} className="map" style={{ height: "100vh" }} />
-
       {/* Directions Display */}
       {directions && (
         <div id="instructions">
@@ -1000,6 +1005,34 @@ const Direction = () => {
           </ol>
         </div>
       )}
+      <div class="footerContainer">
+        <p>
+          Made with ❤️ in Atlanta by{" "}
+          <a
+            href="https://www.linkedin.com/in/vineethsendilraj/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Vineeth
+          </a>
+          ,{" "}
+          <a
+            href="https://www.linkedin.com/in/frankchang1000/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Frank
+          </a>
+          , and{" "}
+          <a
+            href="https://www.linkedin.com/in/vatsal-dwivedi/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Vatsal
+          </a>
+        </p>
+      </div>
     </div>
   );
 };

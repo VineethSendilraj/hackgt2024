@@ -195,3 +195,20 @@ html {
   align-items: center; /* Center vertically */
   text-align: center; /* Optional, for text alignment */
 }
+
+.footerContainer {
+  background-color: white;
+  border-radius: 25px; /* Adjusted for pill shape */
+  color: gray;
+  position: absolute; /* Positioning it at the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for centering */
+  bottom: 20px; /* Distance from the bottom */
+  padding: 10px 20px; /* Padding for left and right */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional shadow for better visibility */
+  font-size: 12px;
+}
+.footerContainer a {
+  text-decoration: underline; /* Add underline to the link */
+  color: inherit; /* Ensure the link inherits the color from the footer */
+}
