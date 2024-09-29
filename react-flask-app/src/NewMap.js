@@ -249,49 +249,40 @@ const Direction = () => {
       });
 
       // Add double-click event for setting destination
-      // Add double-click event for setting destination
       mapRef.current.on("dblclick", (event) => {
         (async () => {
           const coords = [event.lngLat.lng, event.lngLat.lat];
           const address = await reverseGeocodeAddress(coords);
-      
+
+          // Use the Ref to access the latest visibleClusters
+          const top50Clusters = [...visibleClustersRef.current]
+            .sort((a, b) => b.pointCount - a.pointCount)
+            .slice(0, 50);
+
+          console.log("Top 50 clusters:", top50Clusters);
+
+          // Prepare pointsToAvoid from the top 50 clusters
+          const pointsToAvoid = top50Clusters
+            .map(
+              (cluster) =>
+                `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
+            )
+            .join(", ");
+
+          console.log("Points to avoid:", pointsToAvoid);
+
           if (address) {
             setDestinationInput(address);
             setDestinationCoords(coords);
-      
-            // Zoom to the clicked location
-            mapRef.current.flyTo({ center: coords, zoom: 20 });
-      
-            // Ensure clusters are fetched after the zoom completes
-            mapRef.current.once("moveend", () => {
-              // Use the Ref to access the latest visibleClusters
-              const top50Clusters = [...visibleClustersRef.current]
-                .sort((a, b) => b.pointCount - a.pointCount)
-                .slice(0, 50);
-      
-              console.log("Top 50 clusters:", top50Clusters);
-      
-              // Prepare pointsToAvoid from the top 50 clusters
-              const pointsToAvoid = top50Clusters
-                .map(
-                  (cluster) =>
-                    `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
-                )
-                .join(",");
-      
-              console.log("Points to avoid:", pointsToAvoid);
-      
-              if (originCoords) {
-                mapRef.current.flyTo({ center: originCoords, zoom: 14 });
-                getRoute(originCoords, coords, mode, pointsToAvoid);
-              }
-            });
+            if (originCoords) {
+              getRoute(originCoords, coords, mode, pointsToAvoid);
+            }
           } else {
             console.error("Reverse geocoding failed for destination.");
           }
         })();
       });
-      
+
       // Fetch visible clusters initially
       fetchVisibleClusters();
 
@@ -318,26 +309,6 @@ const Direction = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, originCoords, destinationCoords]);
 
-  useEffect(() => {
-    if (originCoords && destinationCoords) {
-      // Use the Ref to access the latest visibleClusters
-      const top50Clusters = [...visibleClustersRef.current]
-        .sort((a, b) => b.pointCount - a.pointCount)
-        .slice(0, 50);
-
-      // Prepare pointsToAvoid from the top 50 clusters
-      const pointsToAvoid = top50Clusters
-        .map(
-          (cluster) =>
-            `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
-        )
-        .join(",");
-
-      getRoute(originCoords, destinationCoords, mode, pointsToAvoid);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, originCoords, destinationCoords]);
-
   // Function to handle map style changes
   const handleStyleChange = (newStyle) => {
     setMapStyle(newStyle);
@@ -352,31 +323,17 @@ const Direction = () => {
   };
 
   // Function to get the route between two coordinates
-  // Function to get the route between two coordinates
-  const getRoute = async (start, end, mode, pointsToAvoid = "") => {
+  const getRoute = async (start, end, mode) => {
     try {
-      // Prepare the base URL
-      let url = `https://api.mapbox.com/directions/v5/mapbox/${mode}/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&overview=full&access_token=${mapToken}`;
-
-      // If pointsToAvoid is provided, include it in the URL
-      if (pointsToAvoid) {
-        console.log("Exclduding VALUE NOW: " + pointsToAvoid);
-        const excludeParam = encodeURIComponent(pointsToAvoid);
-        url += `&exclude=${excludeParam}`;
-      }
-
-      const response = await fetch(url, { method: "GET" });
+      const response = await fetch(
+        `https://api.mapbox.com/directions/v5/mapbox/${mode}/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&overview=full&access_token=${mapToken}`,
+        { method: "GET" }
+      );
       const json = await response.json();
 
       // Check if routes exist
       if (!json.routes || json.routes.length === 0) {
         console.error("No routes found");
-
-        new mapboxgl.Popup()
-        .setLngLat(end)
-        .setHTML("<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>")
-        .addTo(mapRef.current);
-
         return;
       }
 
@@ -458,26 +415,7 @@ const Direction = () => {
     if (originCoordsResult && destinationCoordsResult) {
       setOriginCoords(originCoordsResult);
       setDestinationCoords(destinationCoordsResult);
-
-      // Use the Ref to access the latest visibleClusters
-      const top50Clusters = [...visibleClustersRef.current]
-        .sort((a, b) => b.pointCount - a.pointCount)
-        .slice(0, 50);
-
-      // Prepare pointsToAvoid from the top 50 clusters
-      const pointsToAvoid = top50Clusters
-        .map(
-          (cluster) =>
-            `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
-        )
-        .join(",");
-
-      getRoute(
-        originCoordsResult,
-        destinationCoordsResult,
-        mode,
-        pointsToAvoid
-      );
+      getRoute(originCoordsResult, destinationCoordsResult, mode);
     } else {
       console.error("Geocoding failed for origin or destination.");
     }
@@ -533,16 +471,10 @@ const Direction = () => {
 
   // Function to handle origin suggestion selection
   const handleOriginSelect = (feature) => {
-
-    mapRef.current.flyTo({ center: feature.center, zoom: 14 });
-
     setOriginInput(feature.place_name);
     setOriginCoords(feature.center);
     setOriginSuggestions([]);
     setShowOriginSuggestions(false);
-
-
-
     if (destinationCoords) {
       getRoute(feature.center, destinationCoords, mode);
     }
@@ -554,10 +486,6 @@ const Direction = () => {
     setDestinationCoords(feature.center);
     setDestinationSuggestions([]);
     setShowDestinationSuggestions(false);
-      // Zoom to the selected destination
-    mapRef.current.flyTo({ center: feature.center, zoom: 14 });
-
-
     if (originCoords) {
       getRoute(originCoords, feature.center, mode);
     }
@@ -568,7 +496,6 @@ const Direction = () => {
     const fetchOriginSuggestions = async () => {
       if (originInput.trim() === "") {
         setOriginSuggestions([]);
-        
         return;
       }
 
@@ -767,17 +694,14 @@ const Direction = () => {
   };
 
   return (
-
     <div className="map-container">
-      <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
-      <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet'/>
       {/* Map Style Selection */}
       <div className="map-mode-buttons">
         <Tabs variant="soft-rounded" colorScheme="green">
           <TabList>
             <Tab
               onClick={() =>
-                handleStyleChange("mapbox://styles/mapbox/standard")
+                handleStyleChange("mapbox://styles/mapbox/streets-v12")
               }
             >
               <SunIcon />
@@ -859,7 +783,6 @@ const Direction = () => {
                 <li
                   key={feature.id}
                   onClick={() => handleOriginSelect(feature)}
-                  
                   className="suggestion-item"
                 >
                   {feature.place_name}
@@ -1009,7 +932,24 @@ const Direction = () => {
         </div>
       )}
 
-
+      {/* Display visible clusters */}
+      <div
+        className="visible-clusters-info"
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "white",
+          padding: "10px",
+          borderRadius: "5px",
+          zIndex: 1,
+        }}
+      >
+        <p>
+          <strong>Visible Clusters:</strong> {visibleClusters.length}
+        </p>
+        {/* You can add more details or visualization as needed */}
+      </div>
     </div>
   );
 };
