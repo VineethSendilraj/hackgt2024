@@ -101,7 +101,7 @@ html {
 #instructions {
   position: absolute;
   top: 240px; /* Adjust to position right under the controls with some spacing */
-  left: 20px; /* Align with the input container */
+  right: 20px; /* Align with the input container */
   width: 320px;
   max-height: 70%;
   background-color: #ffffffcc;
@@ -191,4 +191,13 @@ html {
 
 .suggestion-item:hover {
   background-color: #f0f0f0;
+}
+
+.danger .mapboxgl-popup-content {
+  font:
+    400 15px/22px 'Source Sans Pro',
+    'Helvetica Neue',
+    sans-serif;
+  padding: 0;
+  width: 180px;
 }
