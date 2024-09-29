@@ -115,32 +115,6 @@ const Direction = () => {
     setCrimeFilters(updatedCrimeFilters);
   };
 
-  // Function to update map layers based on crimeFilters (Removed in favor of unified approach)
-  /*
-  const updateMapLayers = useCallback(() => {
-    // Removed to use a single layer approach
-  }, [crimeFilters]);
-  */
-
-  // Call updateMapLayers when the map loads and when crimeFilters change
-  /*
-  useEffect(() => {
-    const handleMapLoad = () => {
-      updateMapLayers(); // Removed
-    };
-
-    if (mapRef.current) {
-      mapRef.current.on("load", handleMapLoad);
-    }
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.off("load", handleMapLoad); // Cleanup the event listener
-      }
-    };
-  }, [updateMapLayers]);
-  */
-
   const fetchCrimes = useCallback(async () => {
     try {
       const response = await fetch(
@@ -361,8 +335,6 @@ const Direction = () => {
             setDestinationInput(address);
             setDestinationCoords(coords);
 
-            // Zoom to the clicked location
-
             // Ensure clusters are fetched after the zoom completes
             mapRef.current.once("moveend", () => {
               // Use the Ref to access the latest visibleClusters
@@ -408,7 +380,7 @@ const Direction = () => {
         mapRef.current.remove();
       }
     };
-  }, [mapStyle, originCoords, mode, filteredCrimes]);
+  }, [mapStyle, originCoords, mode]); // Removed 'filteredCrimes' from dependencies
 
   // Update the crimes source when filteredCrimes changes
   useEffect(() => {
@@ -418,76 +390,9 @@ const Direction = () => {
         features: filteredCrimes,
       };
 
-      if (mapRef.current.getSource("crimes")) {
-        mapRef.current.getSource("crimes").setData(geojson);
-      } else {
-        // If the source doesn't exist yet, add it
-        mapRef.current.addSource("crimes", {
-          type: "geojson",
-          data: geojson,
-          cluster: true,
-          clusterMaxZoom: 16,
-          clusterRadius: 50,
-        });
-
-        // Re-add clustering layers if necessary
-        mapRef.current.addLayer({
-          id: "clusters",
-          type: "circle",
-          source: "crimes",
-          filter: ["has", "point_count"],
-          paint: {
-            "circle-color": [
-              "step",
-              ["get", "point_count"],
-              "#51bbd6",
-              100,
-              "#f1f075",
-              750,
-              "#f28cb1",
-            ],
-            "circle-radius": [
-              "step",
-              ["get", "point_count"],
-              25,
-              100,
-              35,
-              750,
-              45,
-            ],
-            "circle-opacity": 0.8,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "#fff",
-            "circle-stroke-opacity": 0.6,
-          },
-        });
-
-        mapRef.current.addLayer({
-          id: "cluster-count",
-          type: "symbol",
-          source: "crimes",
-          filter: ["has", "point_count"],
-          layout: {
-            "text-field": ["get", "point_count_abbreviated"],
-            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-            "text-size": 14,
-          },
-        });
-
-        mapRef.current.addLayer({
-          id: "unclustered-point",
-          type: "circle",
-          source: "crimes",
-          filter: ["!", ["has", "point_count"]],
-          paint: {
-            "circle-color": "#11b4da",
-            "circle-radius": 6,
-            "circle-opacity": 0.9,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "#fff",
-            "circle-stroke-opacity": 0.6,
-          },
-        });
+      const crimesSource = mapRef.current.getSource("crimes");
+      if (crimesSource) {
+        crimesSource.setData(geojson);
       }
     }
   }, [filteredCrimes]);
@@ -867,11 +772,7 @@ const Direction = () => {
 
   return (
     <div className="map-container">
-      <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
-      <link
-        href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css"
-        rel="stylesheet"
-      />
+      {/* Remove the script and link tags; they should be in your HTML */}
       {/* Map Style Selection */}
       <div className="map-mode-buttons">
         <Tabs variant="soft-rounded" colorScheme="green">
