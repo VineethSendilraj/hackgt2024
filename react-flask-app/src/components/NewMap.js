@@ -469,12 +469,14 @@ const Direction = () => {
       if (!json.routes || json.routes.length === 0) {
         console.error("No routes found");
 
+        /*
         new mapboxgl.Popup()
           .setLngLat(end)
           .setHTML(
             "<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>"
           )
           .addTo(mapRef.current);
+        */
 
         return;
       }
