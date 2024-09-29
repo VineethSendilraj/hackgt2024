@@ -13,31 +13,18 @@
 
 .popup-content {
   background-color: white;
-  padding: 100px;
+  padding: 40px; /* Adjusted padding */
   border-radius: 8px;
   width: 50%;
-  height: 50%;
+  height: auto; /* Changed to auto to fit content */
+  max-height: 80%; /* Limit height for better visibility */
+  overflow-y: auto; /* Allow scrolling if content is too long */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
   display: flex; /* Added to enable flexbox */
   flex-direction: column; /* Stack children vertically */
-  justify-content: center; /* Center content vertically */
+  justify-content: flex-start; /* Align items to the top */
   align-items: center; /* Center content horizontally */
-}
-
-.close-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  /* font-size: 14px; */
-}
-
-.close-button:hover {
-  background-color: #0056b3;
 }
 
 .popup-content p {
@@ -48,4 +35,30 @@ h2 {
   font-weight: bold;
   margin-bottom: 10px;
   font-size: 30px;
+}
+
+.section {
+  text-align: left; /* Left align the text in sections */
+  width: 100%; /* Full width for sections */
+  margin-bottom: 20px; /* Space between sections */
+}
+
+h3 {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 24px; /* Adjusted font size for section headers */
+}
+
+.close-button {
+  margin-top: auto; /* Push button to the bottom */
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #0056b3;
 }
