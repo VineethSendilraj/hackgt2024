@@ -9,6 +9,8 @@ import { Tabs, TabList, Tab } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
 import { ButtonGroup, Image, Text } from "@chakra-ui/react";
 
+import { GrPowerReset } from "react-icons/gr";
+
 import {
   Button,
   Box,
@@ -957,8 +959,8 @@ const Direction = () => {
             </p>
 
             {/* Chakra UI Button */}
-            <Button onClick={handleReset} colorScheme="red" pl={4}>
-              Reset
+            <Button class="resetButton" onClick={handleReset}>
+              <GrPowerReset />
             </Button>
           </div>
 

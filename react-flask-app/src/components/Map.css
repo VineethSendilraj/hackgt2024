@@ -95,13 +95,13 @@ html {
   justify-content: center;
   align-items: center;
 
-  min-width: 30px;
+  min-width: 300px;
 }
 
 #instructions {
   position: absolute;
-  top: 240px; /* Adjust to position right under the controls with some spacing */
-  right: 20px; /* Align with the input container */
+  top: 80px; /* Adjust to position right under the controls with some spacing */
+  right: 50px; /* Align with the input container */
   width: 320px;
   max-height: 70%;
   background-color: #ffffffcc;
@@ -194,10 +194,20 @@ html {
 }
 
 .danger .mapboxgl-popup-content {
-  font:
-    400 15px/22px 'Source Sans Pro',
-    'Helvetica Neue',
-    sans-serif;
+  font: 400 15px/22px "Source Sans Pro", "Helvetica Neue", sans-serif;
   padding: 0;
   width: 180px;
+}
+
+.resetButton {
+  background-color: rgb(255 110 110);
+  color: white;
+  height: 50px;
+  width: 50px;
+  font-size: 20px;
+  border-radius: 10px;
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  text-align: center; /* Optional, for text alignment */
 }
