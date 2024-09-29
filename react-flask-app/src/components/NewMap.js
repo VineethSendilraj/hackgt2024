@@ -176,7 +176,7 @@ const Direction = () => {
       container: mapContainerRef.current,
       style: mapStyle,
       center: currentCenter,
-      zoom: 2,
+      zoom: 14,
       doubleClickZoom: false, // Disable default double-click zoom
     });
 
@@ -408,7 +408,7 @@ const Direction = () => {
     if (originCoords && mapRef.current) {
       // Fly to the origin coordinates from the current center
       mapRef.current.flyTo({
-        center: originCoords, // Use the new origin coordinates
+        center: [-84.3879824, 33.7489954], // Use the new origin coordinates
         zoom: 12, // Adjust the zoom level as needed
         essential: true, // This animation is considered essential
         speed: 0.8,
