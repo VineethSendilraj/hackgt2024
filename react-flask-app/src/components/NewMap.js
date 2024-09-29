@@ -7,10 +7,9 @@ import { Car, Footprints, Bike } from "lucide-react";
 
 import { Tabs, TabList, Tab, useControllableState } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
-import {ButtonGroup } from '@chakra-ui/react'
-import { Image } from '@chakra-ui/react'
+import { ButtonGroup } from "@chakra-ui/react";
+import { Image } from "@chakra-ui/react";
 import { Text } from "@chakra-ui/react";
-
 
 // Implementing Filter Form
 import {
@@ -28,8 +27,7 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-} from '@chakra-ui/react';
-
+} from "@chakra-ui/react";
 
 import {
   FaLocationDot,
@@ -66,15 +64,10 @@ const Direction = () => {
 
   // filter shit
   const [filters, setFilters] = useState({
-    0: { crime: [] },  // Initialize with only crime filters
+    0: { crime: [] }, // Initialize with only crime filters
   });
-  const [countID, setCountID] = useState(1);  // Filter count ID
-  const [update, setUpdate] = useState(0);  // To trigger updates
-
-    
-  // State to store visible clusters
-  const [visibleClusters, setVisibleClusters] = useState([]);
-
+  const [countID, setCountID] = useState(1); // Filter count ID
+  const [update, setUpdate] = useState(0); // To trigger updates
 
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
@@ -83,12 +76,24 @@ const Direction = () => {
 
   // add the state
 
+  // State to store visible clusters
+  const [visibleClusters, setVisibleClusters] = useState([]);
+
+  // Ref to store the latest visible clusters
+  const visibleClustersRef = useRef(visibleClusters);
+
+  // Update the Ref whenever visibleClusters changes
+  useEffect(() => {
+    visibleClustersRef.current = visibleClusters;
+  }, [visibleClusters]);
+
   // Add this useEffect to log visible clusters (optional)
   useEffect(() => {
     console.log("Visible Clusters:", visibleClusters);
   }, [visibleClusters]);
 
-  const mapToken = 'pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ';
+  const mapToken =
+    "pk.eyJ1IjoiZnJhbmtjaGFuZzEwMDAiLCJhIjoiY20xbGFzcG1hMDNvaTJxbjY3a3N4NWw4dyJ9.W78DlIwDnlVOrCE5F1OnkQ";
 
   // Initialize Mapbox Geocoding client
   const geocodingClient = MapboxGeocoding({
@@ -114,17 +119,17 @@ const Direction = () => {
 
       // Query all rendered features in the 'clusters' layer
       const clusters = mapRef.current.queryRenderedFeatures({
-          layers: ["clusters"], // Ensure this matches your clusters layer ID
+        layers: ["clusters"], // Ensure this matches your clusters layer ID
       });
-  
-        // Optional: Process clusters if needed (e.g., extract specific properties)
+
+      // Optional: Process clusters if needed (e.g., extract specific properties)
       const processedClusters = clusters.map((cluster) => ({
         id: cluster.id,
         coordinates: cluster.geometry.coordinates,
         pointCount: cluster.properties.point_count,
         // Add other properties as needed
       }));
-        setVisibleClusters(processedClusters);
+      setVisibleClusters(processedClusters);
     };
 
     mapRef.current.on("load", () => {
@@ -242,24 +247,35 @@ const Direction = () => {
       mapRef.current.on("mouseleave", "clusters", () => {
         mapRef.current.getCanvas().style.cursor = "";
       });
-        
+
       // Add double-click event for setting destination
       mapRef.current.on("dblclick", (event) => {
         (async () => {
           const coords = [event.lngLat.lng, event.lngLat.lat];
           const address = await reverseGeocodeAddress(coords);
-          const pointsToAvoid = visibleClusters
-          .slice(0, 50) // Take top 50 clusters
-          .map(cluster => `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`)
-          .join(", ");
+
+          // Use the Ref to access the latest visibleClusters
+          const top50Clusters = [...visibleClustersRef.current]
+            .sort((a, b) => b.pointCount - a.pointCount)
+            .slice(0, 50);
+
+          console.log("Top 50 clusters:", top50Clusters);
+
+          // Prepare pointsToAvoid from the top 50 clusters
+          const pointsToAvoid = top50Clusters
+            .map(
+              (cluster) =>
+                `point(${cluster.coordinates[0]} ${cluster.coordinates[1]})`
+            )
+            .join(", ");
 
           console.log("Points to avoid:", pointsToAvoid);
-          
+
           if (address) {
             setDestinationInput(address);
             setDestinationCoords(coords);
             if (originCoords) {
-              getRoute(originCoords, coords, mode);
+              getRoute(originCoords, coords, mode, pointsToAvoid);
             }
           } else {
             console.error("Reverse geocoding failed for destination.");
@@ -273,7 +289,6 @@ const Direction = () => {
       // Set up event listeners to update visible clusters on view changes
       mapRef.current.on("moveend", fetchVisibleClusters);
       mapRef.current.on("zoomend", fetchVisibleClusters);
-
     });
 
     // Cleanup on unmount
@@ -284,10 +299,9 @@ const Direction = () => {
         mapRef.current.remove();
       }
     };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapStyle, originCoords, mode]);
 
-        
   useEffect(() => {
     if (originCoords && destinationCoords) {
       getRoute(originCoords, destinationCoords, mode);
@@ -387,8 +401,6 @@ const Direction = () => {
   const handleModeChange = (selectedMode) => {
     setMode(selectedMode);
   };
-
-
 
   // Function to calculate route based on input fields
   const calculateRoute = async () => {
@@ -555,7 +567,6 @@ const Direction = () => {
     return () => clearTimeout(debounceTimer);
   }, [destinationInput, geocodingClient]);
 
-
   // handle reset button
   const handleReset = () => {
     setOriginInput("");
@@ -565,7 +576,7 @@ const Direction = () => {
     setOriginSuggestions([]);
     setDestinationSuggestions([]);
     setDirections(null);
-  
+
     // Remove the route layer from the map if it exists
     if (mapRef.current.getSource("route")) {
       mapRef.current.getSource("route").setData({
@@ -575,68 +586,96 @@ const Direction = () => {
     }
   };
 
-const UpdatedMap = (filtered) => {
-        mapRef.current.addLayer({
-          id: "clusters",
-          type: "circle",
-          source: "crimes",
-          filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
-          paint: {
-            "circle-color": [
-              "step",
-              ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered],
-              "#51bbd6",
-              100,
-              "#f1f075",
-              750,
-              "#f28cb1",
+  const UpdatedMap = (filtered) => {
+    mapRef.current.addLayer({
+      id: "clusters",
+      type: "circle",
+      source: "crimes",
+      filter: [
+        "in",
+        ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]],
+        filtered,
+      ],
+      paint: {
+        "circle-color": [
+          "step",
+          [
+            "in",
+            [
+              "get",
+              "Crime_Type",
+              ["get", mapRef.current.features[0].properties],
             ],
-            "circle-radius": [
-              "step",
-              ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
-              25,
-              100,
-              35,
-              750,
-              45,
+            filtered,
+          ],
+          "#51bbd6",
+          100,
+          "#f1f075",
+          750,
+          "#f28cb1",
+        ],
+        "circle-radius": [
+          "step",
+          [
+            "in",
+            [
+              "get",
+              "Crime_Type",
+              ["get", mapRef.current.features[0].properties],
             ],
-            "circle-opacity": 0.8,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "#fff",
-            "circle-stroke-opacity": 0.6,
-          },
-        });
-  
-        mapRef.current.addLayer({
-          id: "cluster-count",
-          type: "symbol",
-          source: "crimes",
-          filter: ["in", ["get", "Crime_Type", ["get",mapRef.current.features[0].properties]], filtered],
-          layout: {
-            "text-field": ["get", "point_count_abbreviated"],
-            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-            "text-size": 14,
-          },
-        });
-  
-        mapRef.current.addLayer({
-          id: "unclustered-point",
-          type: "circle",
-          source: "crimes",
-          filter: ["!", ["in", ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]], filtered]],
-          paint: {
-            "circle-color": "#11b4da",
-            "circle-radius": 6,
-            "circle-opacity": 0.9,
-            "circle-stroke-width": 2,
-            "circle-stroke-color": "#fff",
-            "circle-stroke-opacity": 0.6,
-          },
-        });
-    };
-  
-  
+            filtered,
+          ],
+          25,
+          100,
+          35,
+          750,
+          45,
+        ],
+        "circle-opacity": 0.8,
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#fff",
+        "circle-stroke-opacity": 0.6,
+      },
+    });
 
+    mapRef.current.addLayer({
+      id: "cluster-count",
+      type: "symbol",
+      source: "crimes",
+      filter: [
+        "in",
+        ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]],
+        filtered,
+      ],
+      layout: {
+        "text-field": ["get", "point_count_abbreviated"],
+        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+        "text-size": 14,
+      },
+    });
+
+    mapRef.current.addLayer({
+      id: "unclustered-point",
+      type: "circle",
+      source: "crimes",
+      filter: [
+        "!",
+        [
+          "in",
+          ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]],
+          filtered,
+        ],
+      ],
+      paint: {
+        "circle-color": "#11b4da",
+        "circle-radius": 6,
+        "circle-opacity": 0.9,
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#fff",
+        "circle-stroke-opacity": 0.6,
+      },
+    });
+  };
 
   const updateFilter = (id, key, value) => {
     const updatedFilters = { ...filters };
@@ -650,11 +689,8 @@ const UpdatedMap = (filtered) => {
     setFilters(updatedFilters);
   };
 
-
   const triggerUpdate = () => {
     setUpdate(update + 1);
-    
-    
   };
 
   return (
@@ -692,23 +728,25 @@ const UpdatedMap = (filtered) => {
 
       {/* Controls for Origin and Destination */}
       <div className="controls">
-
-      <div className="logo-container" style={{ display: "flex", alignItems: "center" }}>
-        <Text
-          fontFamily="Avenir, sans-serif" // or "Avenir Next, sans-serif" if using Google Fonts
-          fontSize="24px" // Adjust size as needed
-          margin = '0'
+        <div
+          className="logo-container"
+          style={{ display: "flex", alignItems: "center" }}
         >
-          safely
-        </Text>
-        <Image
-          borderRadius="full"
-          boxSize="50px" // Adjust the size as needed
-          src="https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/logo-removebg-preview.png"
-          alt="Logo"
-          paddingLeft = '5px'
-        />
-      </div>
+          <Text
+            fontFamily="Avenir, sans-serif" // or "Avenir Next, sans-serif" if using Google Fonts
+            fontSize="24px" // Adjust size as needed
+            margin="0"
+          >
+            safely
+          </Text>
+          <Image
+            borderRadius="full"
+            boxSize="50px" // Adjust the size as needed
+            src="https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/logo-removebg-preview.png"
+            alt="Logo"
+            paddingLeft="5px"
+          />
+        </div>
         {/* Origin Input */}
         <div
           className="input-container"
@@ -817,44 +855,49 @@ const UpdatedMap = (filtered) => {
           </TabList>
         </Tabs>
 
-
-
         <Accordion allowToggle>
-        {Object.keys(filters).map((filterId) => (
-          <AccordionItem key={filterId}>
-            <AccordionButton>
-              <Box flex="1" textAlign="left">
-              <FormLabel>Crime Involved</FormLabel>
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel>
-              <CheckboxGroup
-                onChange={(e) => updateFilter(filterId, 'crime', e)}
-                defaultValue={filters[filterId].crime}
-              >
-                <SimpleGrid spacing={5} columns={2}>
-                  <Checkbox value="Aggravated Assault">Aggravated Assault</Checkbox>
-                  <Checkbox value="Auto Theft">Auto Theft</Checkbox>
-                  <Checkbox value="Larceny-From Vehicle">Larceny-From Vehicle</Checkbox>
-                  <Checkbox value="Larceny-Non Vehicle">Larceny-Non Vehicle</Checkbox>
-                  <Checkbox value="Burglary">Burglary</Checkbox>
-                  <Checkbox value="Homicide">Homicide</Checkbox>
-                  <Checkbox value="Robbery">Robbery</Checkbox>
-                </SimpleGrid>
-              </CheckboxGroup>
-              {Object.keys(filters).length > 1 && (
-                <Button colorScheme="red" onClick={() => deleteFilter(filterId)}>
-                  Remove Filter
-                </Button>
-              )}
-            </AccordionPanel>
-          </AccordionItem>
-        ))}
-      </Accordion>
-
+          {Object.keys(filters).map((filterId) => (
+            <AccordionItem key={filterId}>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">
+                  <FormLabel>Crime Involved</FormLabel>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel>
+                <CheckboxGroup
+                  onChange={(e) => updateFilter(filterId, "crime", e)}
+                  defaultValue={filters[filterId].crime}
+                >
+                  <SimpleGrid spacing={5} columns={2}>
+                    <Checkbox value="Aggravated Assault">
+                      Aggravated Assault
+                    </Checkbox>
+                    <Checkbox value="Auto Theft">Auto Theft</Checkbox>
+                    <Checkbox value="Larceny-From Vehicle">
+                      Larceny-From Vehicle
+                    </Checkbox>
+                    <Checkbox value="Larceny-Non Vehicle">
+                      Larceny-Non Vehicle
+                    </Checkbox>
+                    <Checkbox value="Burglary">Burglary</Checkbox>
+                    <Checkbox value="Homicide">Homicide</Checkbox>
+                    <Checkbox value="Robbery">Robbery</Checkbox>
+                  </SimpleGrid>
+                </CheckboxGroup>
+                {Object.keys(filters).length > 1 && (
+                  <Button
+                    colorScheme="red"
+                    onClick={() => deleteFilter(filterId)}
+                  >
+                    Remove Filter
+                  </Button>
+                )}
+              </AccordionPanel>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
-
 
       {/* Map Display */}
       <div ref={mapContainerRef} className="map" style={{ height: "100vh" }} />
@@ -877,7 +920,7 @@ const UpdatedMap = (filtered) => {
 
             {/* Chakra UI Button */}
             <Button onClick={handleReset} colorScheme="red" pl={4}>
-              Reset 
+              Reset
             </Button>
           </div>
 
