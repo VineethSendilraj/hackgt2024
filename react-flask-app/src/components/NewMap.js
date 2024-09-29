@@ -202,7 +202,7 @@ const Direction = () => {
       container: mapContainerRef.current,
       style: mapStyle,
       center: currentCenter,
-      zoom: 2,
+      zoom: 14,
       doubleClickZoom: false, // Disable default double-click zoom
     });
 
