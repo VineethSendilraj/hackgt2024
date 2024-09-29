@@ -34,7 +34,7 @@ const Direction = () => {
 
   // State for map style
   const [mapStyle, setMapStyle] = useState(
-    "mapbox://styles/mapbox/streets-v11"
+    "mapbox://styles/mapbox/standard"
   );
 
   // State for input text
@@ -179,7 +179,7 @@ const Direction = () => {
       container: mapContainerRef.current,
       style: mapStyle,
       center: currentCenter,
-      zoom: 12,
+      zoom: 2,
       doubleClickZoom: false, // Disable default double-click zoom
     });
 
@@ -400,7 +400,7 @@ const Direction = () => {
         center: originCoords, // Use the new origin coordinates
         zoom: 12, // Adjust the zoom level as needed
         essential: true, // This animation is considered essential
-        speed: 0.3,
+        speed: 0.8,
       });
     }
   }, [originCoords]);
