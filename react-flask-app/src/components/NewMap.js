@@ -82,6 +82,8 @@ const Direction = () => {
   // Ref to store the latest visible clusters
   const visibleClustersRef = useRef(visibleClusters);
 
+  const [currentCenter, setCurrentCenter] = useState([-84.3879824, 33.7489954]);
+
   // Update the Ref whenever visibleClusters changes
   useEffect(() => {
     visibleClustersRef.current = visibleClusters;
@@ -105,10 +107,16 @@ const Direction = () => {
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [-84.3879824, 33.7489954],
+      center: currentCenter,
       zoom: 12,
       doubleClickZoom: false, // Disable default double-click zoom
     });
+
+    mapRef.current.on('moveend', () => {
+      const center = mapRef.current.getCenter();
+      setCurrentCenter([center.lng, center.lat]); // Update currentCenter with the new center
+    });
+    
 
     // Add navigation controls to the map (optional)
     mapRef.current.addControl(new mapboxgl.NavigationControl());
@@ -138,7 +146,7 @@ const Direction = () => {
         type: "geojson",
         data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson",
         cluster: true,
-        clusterMaxZoom: 20,
+        clusterMaxZoom: 16,
         clusterRadius: 50,
       });
 
@@ -260,7 +268,6 @@ const Direction = () => {
             setDestinationCoords(coords);
       
             // Zoom to the clicked location
-            mapRef.current.flyTo({ center: coords, zoom: 20 });
       
             // Ensure clusters are fetched after the zoom completes
             mapRef.current.once("moveend", () => {
@@ -282,7 +289,6 @@ const Direction = () => {
               console.log("Points to avoid:", pointsToAvoid);
       
               if (originCoords) {
-                mapRef.current.flyTo({ center: originCoords, zoom: 14 });
                 getRoute(originCoords, coords, mode, pointsToAvoid);
               }
             });
@@ -317,6 +323,18 @@ const Direction = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, originCoords, destinationCoords]);
+  
+  useEffect(() => {
+    if (originCoords && mapRef.current) {
+      // Fly to the origin coordinates from the current center
+      mapRef.current.flyTo({
+        center: originCoords, // Use the new origin coordinates
+        zoom: 12, // Adjust the zoom level as needed
+        essential: true, // This animation is considered essential
+        speed: 0.3
+      });
+    }
+  }, [originCoords]); 
 
   useEffect(() => {
     if (originCoords && destinationCoords) {
@@ -372,10 +390,13 @@ const Direction = () => {
       if (!json.routes || json.routes.length === 0) {
         console.error("No routes found");
 
-        new mapboxgl.Popup()
-        .setLngLat(end)
-        .setHTML("<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>")
-        .addTo(mapRef.current);
+        // popup 
+        const popup = new mapboxgl.Popup({className: "danger"}).setText(
+          "No safe routes found, plotting dangerous route instead."
+        );
+
+
+
 
         return;
       }
@@ -533,8 +554,6 @@ const Direction = () => {
 
   // Function to handle origin suggestion selection
   const handleOriginSelect = (feature) => {
-
-    mapRef.current.flyTo({ center: feature.center, zoom: 14 });
 
     setOriginInput(feature.place_name);
     setOriginCoords(feature.center);
