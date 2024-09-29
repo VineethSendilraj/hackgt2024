@@ -728,7 +728,7 @@ const Direction = () => {
   const handleReset = () => {
     setOriginInput("");
     setDestinationInput("");
-    setOriginCoords(null);
+    setOriginCoords([-84.3879824, 33.7489954]);
     setDestinationCoords(null);
     setOriginSuggestions([]);
     setDestinationSuggestions([]);
@@ -771,8 +771,9 @@ const Direction = () => {
             <Tab
               onClick={() =>
                 handleStyleChange(
-                  "mapbox://styles/mapbox/satellite-streets-v12"
+                  "mapbox://styles/mapbox/standard-satellite"
                 )
+                
               }
             >
               <FaSatellite />
