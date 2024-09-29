@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
@@ -35,9 +35,7 @@ const Direction = () => {
   const mapContainerRef = useRef(null);
 
   // State for map style
-  const [mapStyle, setMapStyle] = useState(
-    "mapbox://styles/mapbox/standard"
-  );
+  const [mapStyle, setMapStyle] = useState("mapbox://styles/mapbox/standard");
 
   // State for input text
   const [originInput, setOriginInput] = useState("");
@@ -69,6 +67,15 @@ const Direction = () => {
   const visibleClustersRef = useRef(visibleClusters);
 
   const [allCrimes, setAllCrimes] = useState([]); // Added state for all crimes
+  const [categorizedCrimes, setCategorizedCrimes] = useState({
+    "AGG ASSAULT": [],
+    "AUTO THEFT": [],
+    "LARCENY-FROM VEHICLE": [],
+    "LARCENY-NON VEHICLE": [],
+    BURGLARY: [],
+    HOMICIDE: [],
+    ROBBERY: [],
+  }); // New state for categorized crimes
   const [filteredCrimes, setFilteredCrimes] = useState([]); // Added state for filtered crimes
 
   // Initialize all crime types as checked
@@ -91,39 +98,18 @@ const Direction = () => {
     setCrimeFilters(updatedCrimeFilters);
   };
 
-  // Function to update map layers based on crimeFilters
+  // Function to update map layers based on crimeFilters (Removed in favor of unified approach)
+  /*
   const updateMapLayers = useCallback(() => {
-    if (!mapRef.current) return; // Check if mapRef.current is defined
-
-    Object.keys(crimeFilters).forEach((crimeType) => {
-      if (crimeFilters[crimeType]) {
-        // Add layer for the checked crime type
-        if (!mapRef.current.getLayer(crimeType)) {
-          mapRef.current.addLayer({
-            id: crimeType,
-            type: "circle",
-            source: "crimes",
-            filter: ["==", ["get", "Crime_Type"], crimeType],
-            paint: {
-              "circle-color": "#51bbd6", // Customize color as needed
-              "circle-radius": 6,
-              "circle-opacity": 0.8,
-            },
-          });
-        }
-      } else {
-        // Remove layer if unchecked
-        if (mapRef.current.getLayer(crimeType)) {
-          mapRef.current.removeLayer(crimeType);
-        }
-      }
-    });
+    // Removed to use a single layer approach
   }, [crimeFilters]);
+  */
 
   // Call updateMapLayers when the map loads and when crimeFilters change
+  /*
   useEffect(() => {
     const handleMapLoad = () => {
-      updateMapLayers(); // Call updateMapLayers after the map has loaded
+      updateMapLayers(); // Removed
     };
 
     if (mapRef.current) {
@@ -136,6 +122,7 @@ const Direction = () => {
       }
     };
   }, [updateMapLayers]);
+  */
 
   const fetchCrimes = useCallback(async () => {
     try {
@@ -144,8 +131,25 @@ const Direction = () => {
       );
       const data = await response.json();
       setAllCrimes(data.features);
+      // Categorize crimes
+      const tempCategorized = {
+        "AGG ASSAULT": [],
+        "AUTO THEFT": [],
+        "LARCENY-FROM VEHICLE": [],
+        "LARCENY-NON VEHICLE": [],
+        BURGLARY: [],
+        HOMICIDE: [],
+        ROBBERY: [],
+      };
+      data.features.forEach((crime) => {
+        const type = crime.properties.Crime_Type;
+        if (tempCategorized[type]) {
+          tempCategorized[type].push(crime);
+        }
+      });
+      setCategorizedCrimes(tempCategorized);
       setFilteredCrimes(data.features); // Initially, all crimes are visible
-      console.log("Fetched Crimes Data:", data.features); // Log the fetched data
+      console.log("Fetched and Categorized Crimes Data:", data.features);
     } catch (error) {
       console.error("Error fetching crime data:", error);
     }
@@ -213,18 +217,19 @@ const Direction = () => {
     };
 
     mapRef.current.on("load", () => {
-      // Clustering logic
+      // Add crimes source with initial filteredCrimes
       mapRef.current.addSource("crimes", {
         type: "geojson",
-        data: "https://raw.githubusercontent.com/VineethSendilraj/hackgt2024/main/react-flask-app/src/data/2019_2020.geojson",
+        data: {
+          type: "FeatureCollection",
+          features: filteredCrimes,
+        },
         cluster: true,
         clusterMaxZoom: 16,
         clusterRadius: 50,
       });
 
-      // Add initial layers based on crimeFilters
-      updateMapLayers();
-
+      // Add clustering layers
       mapRef.current.addLayer({
         id: "clusters",
         type: "circle",
@@ -386,7 +391,89 @@ const Direction = () => {
         mapRef.current.remove();
       }
     };
-  }, [mapStyle, originCoords, mode, updateMapLayers]);
+  }, [mapStyle, originCoords, mode, filteredCrimes]);
+
+  // Update the crimes source when filteredCrimes changes
+  useEffect(() => {
+    if (mapRef.current && mapRef.current.isStyleLoaded()) {
+      const geojson = {
+        type: "FeatureCollection",
+        features: filteredCrimes,
+      };
+
+      if (mapRef.current.getSource("crimes")) {
+        mapRef.current.getSource("crimes").setData(geojson);
+      } else {
+        // If the source doesn't exist yet, add it
+        mapRef.current.addSource("crimes", {
+          type: "geojson",
+          data: geojson,
+          cluster: true,
+          clusterMaxZoom: 16,
+          clusterRadius: 50,
+        });
+
+        // Re-add clustering layers if necessary
+        mapRef.current.addLayer({
+          id: "clusters",
+          type: "circle",
+          source: "crimes",
+          filter: ["has", "point_count"],
+          paint: {
+            "circle-color": [
+              "step",
+              ["get", "point_count"],
+              "#51bbd6",
+              100,
+              "#f1f075",
+              750,
+              "#f28cb1",
+            ],
+            "circle-radius": [
+              "step",
+              ["get", "point_count"],
+              25,
+              100,
+              35,
+              750,
+              45,
+            ],
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-opacity": 0.6,
+          },
+        });
+
+        mapRef.current.addLayer({
+          id: "cluster-count",
+          type: "symbol",
+          source: "crimes",
+          filter: ["has", "point_count"],
+          layout: {
+            "text-field": ["get", "point_count_abbreviated"],
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 14,
+          },
+        });
+
+        mapRef.current.addLayer({
+          id: "unclustered-point",
+          type: "circle",
+          source: "crimes",
+          filter: ["!", ["has", "point_count"]],
+          paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 6,
+            "circle-opacity": 0.9,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-opacity": 0.6,
+          },
+        });
+      }
+    }
+  }, [filteredCrimes]);
 
   useEffect(() => {
     if (originCoords && destinationCoords) {
@@ -743,6 +830,24 @@ const Direction = () => {
     }
   };
 
+  // Derive filteredCrimes using useMemo for optimization
+  const derivedFilteredCrimes = useMemo(() => {
+    const selectedCrimes = [];
+
+    Object.keys(crimeFilters).forEach((crimeType) => {
+      if (crimeFilters[crimeType]) {
+        selectedCrimes.push(...categorizedCrimes[crimeType]);
+      }
+    });
+
+    return selectedCrimes;
+  }, [crimeFilters, categorizedCrimes]);
+
+  // Update filteredCrimes state whenever derivedFilteredCrimes changes
+  useEffect(() => {
+    setFilteredCrimes(derivedFilteredCrimes);
+  }, [derivedFilteredCrimes]);
+
   return (
     <div className="map-container">
       <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
@@ -770,10 +875,7 @@ const Direction = () => {
             </Tab>
             <Tab
               onClick={() =>
-                handleStyleChange(
-                  "mapbox://styles/mapbox/standard-satellite"
-                )
-                
+                handleStyleChange("mapbox://styles/mapbox/standard-satellite")
               }
             >
               <FaSatellite />
@@ -960,7 +1062,7 @@ const Direction = () => {
             </p>
 
             {/* Chakra UI Button */}
-            <Button class="resetButton" onClick={handleReset}>
+            <Button className="resetButton" onClick={handleReset}>
               <GrPowerReset />
             </Button>
           </div>
