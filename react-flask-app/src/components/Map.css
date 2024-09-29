@@ -184,8 +184,8 @@ html {
 }
 
 .resetButton {
-  background-color: rgb(255 110 110);
-  color: white;
+  background-color: #276749 !important;
+  color: white !important;
   height: 50px;
   width: 50px;
   font-size: 20px;
@@ -195,6 +195,14 @@ html {
   align-items: center; /* Center vertically */
   text-align: center; /* Optional, for text alignment */
 }
+
+/* .resetButton :hover {
+  background-color: rgb(255 110 110) !important;
+  height: 40px;
+  width: 10px;
+  font-size: 20px;
+  border-radius: 10px;
+} */
 
 .footerContainer {
   background-color: white;

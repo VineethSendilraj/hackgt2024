@@ -5,6 +5,11 @@ const OnboardingPopup = ({ onClose }) => {
   return (
     <div className="onboarding-popup">
       <div className="popup-content">
+        {/* Banner for crime data limitation */}
+        <div className="data-limitation-banner">
+          ⚠️ Currently, the crime data is limited to the Atlanta area.
+        </div>
+
         <h2>Welcome to Safely!</h2>
 
         <div className="section">

@@ -413,18 +413,6 @@ const Direction = () => {
   }, [mode, originCoords, destinationCoords]);
 
   useEffect(() => {
-    if (originCoords && mapRef.current) {
-      // Fly to the origin coordinates from the current center
-      mapRef.current.flyTo({
-        center: [-84.3879824, 33.7489954], // Use the new origin coordinates
-        zoom: 12, // Adjust the zoom level as needed
-        essential: true, // This animation is considered essential
-        speed: 0.8,
-      });
-    }
-  }, [originCoords]);
-
-  useEffect(() => {
     if (originCoords && destinationCoords) {
       // Use the Ref to access the latest visibleClusters
       const top50Clusters = [...visibleClustersRef.current]
@@ -460,6 +448,9 @@ const Direction = () => {
   // Function to get the route between two coordinates
   const getRoute = async (start, end, mode, pointsToAvoid = "") => {
     try {
+      // Store current zoom level and center
+      const currentZoom = mapRef.current.getZoom();
+      const currentCenter = mapRef.current.getCenter();
       // Prepare the base URL
       let url = `https://api.mapbox.com/directions/v5/mapbox/${mode}/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&overview=full&access_token=${mapToken}`;
 
@@ -477,12 +468,12 @@ const Direction = () => {
       if (!json.routes || json.routes.length === 0) {
         console.error("No routes found");
 
-        new mapboxgl.Popup()
-          .setLngLat(end)
-          .setHTML(
-            "<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>"
-          )
-          .addTo(mapRef.current);
+        // new mapboxgl.Popup()
+        //   .setLngLat(end)
+        //   .setHTML(
+        //     "<h3>No safe route found</h3><p>Follow the route plotted at your own risk.</p>"
+        //   )
+        //   .addTo(mapRef.current);
 
         return;
       }
@@ -521,6 +512,10 @@ const Direction = () => {
           },
         });
       }
+
+      // Restore the previous zoom level and center
+      mapRef.current.setZoom(currentZoom);
+      mapRef.current.setCenter(currentCenter);
 
       // Fit the map to the route
       const bounds = new mapboxgl.LngLatBounds();
@@ -641,14 +636,36 @@ const Direction = () => {
   // Function to handle origin suggestion selection
   const handleOriginSelect = (feature) => {
     setOriginInput(feature.place_name);
-    setOriginCoords(feature.center);
+    setOriginCoords(feature.center); // Set the new origin coordinates
     setOriginSuggestions([]);
     setShowOriginSuggestions(false);
+
+    // Only fly to the selected origin coordinates if they are different
+    if (
+      !originCoords ||
+      originCoords[0] !== feature.center[0] ||
+      originCoords[1] !== feature.center[1]
+    ) {
+      mapRef.current.flyTo({ center: feature.center, zoom: 14 });
+    }
 
     if (destinationCoords) {
       getRoute(feature.center, destinationCoords, mode);
     }
   };
+
+  // Effect to fly to updated origin coordinates
+  useEffect(() => {
+    if (originCoords && mapRef.current) {
+      // Fly to the updated origin coordinates only if they are different
+      mapRef.current.flyTo({
+        center: originCoords, // Use the updated origin coordinates
+        zoom: 12, // Adjust the zoom level as needed
+        essential: true, // This animation is considered essential
+        speed: 0.8,
+      });
+    }
+  }, [originCoords]);
 
   // Function to handle destination suggestion selection
   const handleDestinationSelect = (feature) => {
@@ -656,7 +673,8 @@ const Direction = () => {
     setDestinationCoords(feature.center);
     setDestinationSuggestions([]);
     setShowDestinationSuggestions(false);
-    // Zoom to the selected destination
+
+    // Fly to the selected destination coordinates
     mapRef.current.flyTo({ center: feature.center, zoom: 14 });
 
     if (originCoords) {
@@ -746,6 +764,13 @@ const Direction = () => {
 
     return () => clearTimeout(debounceTimer);
   }, [destinationInput, geocodingClient]);
+
+  useEffect(() => {
+    if (originCoords && destinationCoords) {
+      getRoute(originCoords, destinationCoords, mode); // Call getRoute whenever mode changes
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, originCoords, destinationCoords]);
 
   // Handle reset button
   const handleReset = () => {
