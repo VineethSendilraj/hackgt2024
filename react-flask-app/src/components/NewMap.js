@@ -83,6 +83,8 @@ const Direction = () => {
   // Ref to store the latest visible clusters
   const visibleClustersRef = useRef(visibleClusters);
 
+  const initialFilterApplied = useRef(false);
+
   const [allCrimes, setAllCrimes] = useState([]); // Added state for all crimes
   const [categorizedCrimes, setCategorizedCrimes] = useState({
     "AGG ASSAULT": [],
@@ -113,6 +115,15 @@ const Direction = () => {
       updatedCrimeFilters[crimeType] = checkedValues.includes(crimeType);
     });
     setCrimeFilters(updatedCrimeFilters);
+
+    // Only update filteredCrimes if it's not the initial run
+    if (initialFilterApplied.current) {
+      const selectedCrimes = [];
+      checkedValues.forEach((crimeType) => {
+        selectedCrimes.push(...categorizedCrimes[crimeType]);
+      });
+      setFilteredCrimes(selectedCrimes);
+    }
   };
 
   const fetchCrimes = useCallback(async () => {
@@ -122,6 +133,7 @@ const Direction = () => {
       );
       const data = await response.json();
       setAllCrimes(data.features);
+
       // Categorize crimes
       const tempCategorized = {
         "AGG ASSAULT": [],
@@ -141,10 +153,13 @@ const Direction = () => {
       setCategorizedCrimes(tempCategorized);
       setFilteredCrimes(data.features); // Initially, all crimes are visible
       console.log("Fetched and Categorized Crimes Data:", data.features);
+
+      // Apply initial filters after categorizing crimes
+      handleCrimeFiltersChange(Object.keys(crimeFilters));
     } catch (error) {
       console.error("Error fetching crime data:", error);
     }
-  }, []);
+  }, [handleCrimeFiltersChange, crimeFilters]);
 
   useEffect(() => {
     fetchCrimes(); // Call fetchCrimes when the component mounts
@@ -767,16 +782,11 @@ const Direction = () => {
     return selectedCrimes;
   }, [crimeFilters, categorizedCrimes]);
 
-  // Update filteredCrimes state whenever derivedFilteredCrimes changes
-  useEffect(() => {
-    setFilteredCrimes(derivedFilteredCrimes);
-  }, [derivedFilteredCrimes]);
-
   useEffect(() => {
     handleCrimeFiltersChange(
       Object.keys(crimeFilters).filter((crimeType) => crimeFilters[crimeType])
     );
-  }, [crimeFilters]);
+  }, []);
 
   return (
     <div className="map-container">
