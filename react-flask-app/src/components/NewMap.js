@@ -1,26 +1,20 @@
-import React, { useRef, useEffect, useState, useCallback } from "react"; // Added useCallback
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import MapboxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 import "./Map.css";
 import { Car, Footprints, Bike } from "lucide-react";
 
-import { Tabs, TabList, Tab, useControllableState } from "@chakra-ui/react";
+import { Tabs, TabList, Tab } from "@chakra-ui/react";
 import { MoonIcon, SunIcon, Search2Icon } from "@chakra-ui/icons";
-import { ButtonGroup } from "@chakra-ui/react";
-import { Image } from "@chakra-ui/react";
-import { Text } from "@chakra-ui/react";
+import { ButtonGroup, Image, Text } from "@chakra-ui/react";
 
-// Implementing Filter Form
 import {
   Button,
   Box,
-  FormControl,
   FormLabel,
   Checkbox,
   CheckboxGroup,
-  Input,
-  Stack,
   SimpleGrid,
   Accordion,
   AccordionItem,
@@ -59,22 +53,12 @@ const Direction = () => {
   const [destinationCoords, setDestinationCoords] = useState(null);
 
   // Other states
-
   const [mode, setMode] = useState("walking");
-
-  // filter shit
-  const [filters, setFilters] = useState({
-    0: { crime: [] }, // Initialize with only crime filters
-  });
-  const [countID, setCountID] = useState(1); // Filter count ID
-  const [update, setUpdate] = useState(0); // To trigger updates
 
   const mapRef = useRef();
   const [directions, setDirections] = useState(null);
   const [showOriginSearch, setShowOriginSearch] = useState(false); // Visibility for origin search icon
   const [showDestinationSearch, setShowDestinationSearch] = useState(false); // Visibility for destination search icon
-
-  // add the state
 
   // State to store visible clusters
   const [visibleClusters, setVisibleClusters] = useState([]);
@@ -84,6 +68,72 @@ const Direction = () => {
 
   const [allCrimes, setAllCrimes] = useState([]); // Added state for all crimes
   const [filteredCrimes, setFilteredCrimes] = useState([]); // Added state for filtered crimes
+
+  // Initialize all crime types as checked
+  const [crimeFilters, setCrimeFilters] = useState({
+    "AGG ASSAULT": true,
+    "AUTO THEFT": true,
+    "LARCENY-FROM VEHICLE": true,
+    "LARCENY-NON VEHICLE": true,
+    BURGLARY: true,
+    HOMICIDE: true,
+    ROBBERY: true,
+  });
+
+  // Function to handle changes in crime filters
+  const handleCrimeFiltersChange = (checkedValues) => {
+    const updatedCrimeFilters = {};
+    Object.keys(crimeFilters).forEach((crimeType) => {
+      updatedCrimeFilters[crimeType] = checkedValues.includes(crimeType);
+    });
+    setCrimeFilters(updatedCrimeFilters);
+  };
+
+  // Function to update map layers based on crimeFilters
+  const updateMapLayers = useCallback(() => {
+    if (!mapRef.current) return; // Check if mapRef.current is defined
+
+    Object.keys(crimeFilters).forEach((crimeType) => {
+      if (crimeFilters[crimeType]) {
+        // Add layer for the checked crime type
+        if (!mapRef.current.getLayer(crimeType)) {
+          mapRef.current.addLayer({
+            id: crimeType,
+            type: "circle",
+            source: "crimes",
+            filter: ["==", ["get", "Crime_Type"], crimeType],
+            paint: {
+              "circle-color": "#51bbd6", // Customize color as needed
+              "circle-radius": 6,
+              "circle-opacity": 0.8,
+            },
+          });
+        }
+      } else {
+        // Remove layer if unchecked
+        if (mapRef.current.getLayer(crimeType)) {
+          mapRef.current.removeLayer(crimeType);
+        }
+      }
+    });
+  }, [crimeFilters]);
+
+  // Call updateMapLayers when the map loads and when crimeFilters change
+  useEffect(() => {
+    const handleMapLoad = () => {
+      updateMapLayers(); // Call updateMapLayers after the map has loaded
+    };
+
+    if (mapRef.current) {
+      mapRef.current.on("load", handleMapLoad);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.off("load", handleMapLoad); // Cleanup the event listener
+      }
+    };
+  }, [updateMapLayers]);
 
   const fetchCrimes = useCallback(async () => {
     try {
@@ -133,11 +183,10 @@ const Direction = () => {
       doubleClickZoom: false, // Disable default double-click zoom
     });
 
-    mapRef.current.on('moveend', () => {
+    mapRef.current.on("moveend", () => {
       const center = mapRef.current.getCenter();
       setCurrentCenter([center.lng, center.lat]); // Update currentCenter with the new center
     });
-    
 
     // Add navigation controls to the map (optional)
     mapRef.current.addControl(new mapboxgl.NavigationControl());
@@ -171,13 +220,14 @@ const Direction = () => {
         clusterRadius: 50,
       });
 
+      // Add initial layers based on crimeFilters
+      updateMapLayers();
+
       mapRef.current.addLayer({
         id: "clusters",
         type: "circle",
         source: "crimes",
         filter: ["has", "point_count"],
-        // get only the properties that match the filter
-
         paint: {
           "circle-color": [
             "step",
@@ -278,7 +328,6 @@ const Direction = () => {
       });
 
       // Add double-click event for setting destination
-      // Add double-click event for setting destination
       mapRef.current.on("dblclick", (event) => {
         (async () => {
           const coords = [event.lngLat.lng, event.lngLat.lat];
@@ -335,8 +384,7 @@ const Direction = () => {
         mapRef.current.remove();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapStyle, originCoords, mode]);
+  }, [mapStyle, originCoords, mode, updateMapLayers]);
 
   useEffect(() => {
     if (originCoords && destinationCoords) {
@@ -344,7 +392,7 @@ const Direction = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, originCoords, destinationCoords]);
-  
+
   useEffect(() => {
     if (originCoords && mapRef.current) {
       // Fly to the origin coordinates from the current center
@@ -352,10 +400,10 @@ const Direction = () => {
         center: originCoords, // Use the new origin coordinates
         zoom: 12, // Adjust the zoom level as needed
         essential: true, // This animation is considered essential
-        speed: 0.3
+        speed: 0.3,
       });
     }
-  }, [originCoords]); 
+  }, [originCoords]);
 
   useEffect(() => {
     if (originCoords && destinationCoords) {
@@ -391,7 +439,6 @@ const Direction = () => {
   };
 
   // Function to get the route between two coordinates
-  // Function to get the route between two coordinates
   const getRoute = async (start, end, mode, pointsToAvoid = "") => {
     try {
       // Prepare the base URL
@@ -399,7 +446,7 @@ const Direction = () => {
 
       // If pointsToAvoid is provided, include it in the URL
       if (pointsToAvoid) {
-        console.log("Exclduding VALUE NOW: " + pointsToAvoid);
+        console.log("Excluding VALUE NOW: " + pointsToAvoid);
         const excludeParam = encodeURIComponent(pointsToAvoid);
         url += `&exclude=${excludeParam}`;
       }
@@ -574,7 +621,6 @@ const Direction = () => {
 
   // Function to handle origin suggestion selection
   const handleOriginSelect = (feature) => {
-
     setOriginInput(feature.place_name);
     setOriginCoords(feature.center);
     setOriginSuggestions([]);
@@ -676,7 +722,7 @@ const Direction = () => {
     return () => clearTimeout(debounceTimer);
   }, [destinationInput, geocodingClient]);
 
-  // handle reset button
+  // Handle reset button
   const handleReset = () => {
     setOriginInput("");
     setDestinationInput("");
@@ -693,113 +739,6 @@ const Direction = () => {
         features: [],
       });
     }
-  };
-
-  const UpdatedMap = (filtered) => {
-    mapRef.current.addLayer({
-      id: "clusters",
-      type: "circle",
-      source: "crimes",
-      filter: [
-        "in",
-        ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]],
-        filtered,
-      ],
-      paint: {
-        "circle-color": [
-          "step",
-          [
-            "in",
-            [
-              "get",
-              "Crime_Type",
-              ["get", mapRef.current.features[0].properties],
-            ],
-            filtered,
-          ],
-          "#51bbd6",
-          100,
-          "#f1f075",
-          750,
-          "#f28cb1",
-        ],
-        "circle-radius": [
-          "step",
-          [
-            "in",
-            [
-              "get",
-              "Crime_Type",
-              ["get", mapRef.current.features[0].properties],
-            ],
-            filtered,
-          ],
-          25,
-          100,
-          35,
-          750,
-          45,
-        ],
-        "circle-opacity": 0.8,
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#fff",
-        "circle-stroke-opacity": 0.6,
-      },
-    });
-
-    mapRef.current.addLayer({
-      id: "cluster-count",
-      type: "symbol",
-      source: "crimes",
-      filter: [
-        "in",
-        ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]],
-        filtered,
-      ],
-      layout: {
-        "text-field": ["get", "point_count_abbreviated"],
-        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-        "text-size": 14,
-      },
-    });
-
-    mapRef.current.addLayer({
-      id: "unclustered-point",
-      type: "circle",
-      source: "crimes",
-      filter: [
-        "!",
-        [
-          "in",
-          ["get", "Crime_Type", ["get", mapRef.current.features[0].properties]],
-          filtered,
-        ],
-      ],
-      paint: {
-        "circle-color": "#11b4da",
-        "circle-radius": 6,
-        "circle-opacity": 0.9,
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#fff",
-        "circle-stroke-opacity": 0.6,
-      },
-    });
-  };
-
-  const updateFilter = (id, key, value) => {
-    const updatedFilters = { ...filters };
-    updatedFilters[id][key] = value;
-    setFilters(updatedFilters);
-  };
-
-  const deleteFilter = (id) => {
-    const updatedFilters = { ...filters };
-    delete updatedFilters[id];
-    setFilters(updatedFilters);
-  };
-
-  const triggerUpdate = () => {
-    setUpdate(update + 1);
   };
 
   return (
@@ -969,47 +908,32 @@ const Direction = () => {
           </TabList>
         </Tabs>
 
+        {/* Crime Filters Accordion */}
         <Accordion allowToggle>
-          {Object.keys(filters).map((filterId) => (
-            <AccordionItem key={filterId}>
-              <AccordionButton>
-                <Box flex="1" textAlign="left">
-                  <FormLabel>Crime Involved</FormLabel>
-                </Box>
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel>
-                <CheckboxGroup
-                  onChange={(e) => updateFilter(filterId, "crime", e)}
-                  defaultValue={filters[filterId].crime}
-                >
-                  <SimpleGrid spacing={5} columns={2}>
-                    <Checkbox value="Aggravated Assault">
-                      Aggravated Assault
-                    </Checkbox>
-                    <Checkbox value="Auto Theft">Auto Theft</Checkbox>
-                    <Checkbox value="Larceny-From Vehicle">
-                      Larceny-From Vehicle
-                    </Checkbox>
-                    <Checkbox value="Larceny-Non Vehicle">
-                      Larceny-Non Vehicle
-                    </Checkbox>
-                    <Checkbox value="Burglary">Burglary</Checkbox>
-                    <Checkbox value="Homicide">Homicide</Checkbox>
-                    <Checkbox value="Robbery">Robbery</Checkbox>
-                  </SimpleGrid>
-                </CheckboxGroup>
-                {Object.keys(filters).length > 1 && (
-                  <Button
-                    colorScheme="red"
-                    onClick={() => deleteFilter(filterId)}
-                  >
-                    Remove Filter
-                  </Button>
+          <AccordionItem>
+            <AccordionButton>
+              <Box flex="1" textAlign="left">
+                <FormLabel>Crime Involved</FormLabel>
+              </Box>
+              <AccordionIcon />
+            </AccordionButton>
+            <AccordionPanel>
+              <CheckboxGroup
+                value={Object.keys(crimeFilters).filter(
+                  (crimeType) => crimeFilters[crimeType]
                 )}
-              </AccordionPanel>
-            </AccordionItem>
-          ))}
+                onChange={handleCrimeFiltersChange}
+              >
+                <SimpleGrid spacing={5} columns={2}>
+                  {Object.keys(crimeFilters).map((crimeType) => (
+                    <Checkbox key={crimeType} value={crimeType}>
+                      {crimeType}
+                    </Checkbox>
+                  ))}
+                </SimpleGrid>
+              </CheckboxGroup>
+            </AccordionPanel>
+          </AccordionItem>
         </Accordion>
       </div>
 
